@@ -1,0 +1,31 @@
+{
+  "is_compliant": false,
+  "risk_level": "high",
+  "violations": [
+    {
+      "field_name": "web_description_html",
+      "violating_text": "Magnesium Bisglycinate 200 mg cures chronic insomnia and helps to maintain proper muscle function.",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY - The draft makes a disease claim ('cures chronic insomnia') that is not authorized by the product's license. Only muscle function, bone/teeth development, magnesium deficiency,",
+      "required_fix": "Remove the 'cures chronic insomnia' claim. Keep only authorized claims about muscle function, bones/teeth, magnesium deficiency, or energy metabolism."
+    },
+    {
+      "field_name": "social_post_copy",
+      "violating_text": "Magnesium that cures chronic insomnia. #sleep",
+      "regulation_rule": "NO_DISEASE_CLAIMS - The phrase 'cures chronic insomnia' presents a disease/symptom (insomnia) as being cured, which is not an authorized claim. The license only authorizes claims about muscle function",
+      "required_fix": "Replace with an authorized claim such as 'Helps to maintain proper muscle function, including the heart muscle.' or similar."
+    },
+    {
+      "field_name": "npn_displayed",
+      "violating_text": "not shown",
+      "regulation_rule": "NPN_DISPLAY - The NPN (80098765) must be displayed exactly as 'NPN <number>' in both web_description_html and social_post_copy. The draft explicitly states it is not shown.",
+      "required_fix": "Add 'NPN 80098765' to the web_description_html and social_post_copy fields."
+    },
+    {
+      "field_name": "disclaimers_included",
+      "violating_text": "Missing contraindication warning",
+      "regulation_rule": "RISK_INFORMATION - The license requires the mandatory warning 'Do not use if you have kidney disease unless directed by a health care practitioner.' This is currently absent from disclaimers_included.",
+      "required_fix": "Add the contraindication warning to disclaimers_included."
+    }
+  ],
+  "revision_summary": "The draft contains unapproved disease claims ('cures chronic insomnia') in both the web description and social post, violating AUTHORIZED_CLAIMS_ONLY. The NPN number (80098765) is not displayed in either the web description or social post, violating NPN_DISPLAY. Additionally, the mandatory contraindication about kidney disease is missing from the disclaimers. Fix the claims, add the NPN display, and include the kidney disease warning."
+}

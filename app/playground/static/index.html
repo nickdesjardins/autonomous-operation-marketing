@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- Scripts and styles come from this service's own files only; the page talks to its own API. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>Multi-Agent Operations Pipeline</title>
+  <meta name="description" content="Run a LangGraph pipeline that drafts channel marketing copy for a Natural Health Product, audits it against Health Canada NHP rules, loops back on violations, pauses for your decision, and fires a signed webhook only after you approve.">
+  <link rel="icon" href="/playground/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/playground/assets/app.css">
+  <script src="/playground/assets/theme.js"></script>
+  <script src="/playground/assets/app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#run">Skip to the run form</a>
+
+<header class="topbar">
+  <div class="wrap topbar__row">
+    <a class="brand" href="./">
+      <svg class="brand__mark" viewBox="0 0 26 26" aria-hidden="true"><rect class="bg" width="26" height="26" rx="7"/><circle class="pt" cx="7.5" cy="13" r="2.4"/><circle class="pt" cx="13" cy="7.5" r="2.4"/><circle class="pt" cx="18.5" cy="13" r="2.4"/><circle class="dot" cx="13" cy="18.5" r="2.4"/><path class="ln" d="M9.6 11.4l1.8-1.8M14.6 9.6l1.8 1.8M9.6 14.6l1.8 1.8M14.6 16.4l1.8-1.8"/></svg>
+      <span>Multi-Agent Operations Pipeline</span>
+    </a>
+    <nav class="topbar__nav" aria-label="On this page">
+      <a href="#run">Run</a>
+      <a href="#models">Models</a>
+      <a href="#how">How a run flows</a>
+      <a href="#rules">The rules</a>
+      <a href="#prompts">The prompts</a>
+    </nav>
+    <button class="iconbtn" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+      <svg class="icon theme-icon--light" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8 8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2z"/></svg>
+      <svg class="icon theme-icon--dark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="kicker">Applied AI · LangGraph · human-in-the-loop</p>
+    <h1>Copy that ships only <span>after a human says yes.</span></h1>
+    <p class="lede">
+      Pick a product and give a campaign brief. A supervisor validates the request, an inventory
+      tool reads the SKU from PostgreSQL (no model writes SQL), a synthesis agent drafts the
+      channel copy, and a compliance validator audits it against Health Canada NHP rules: a
+      model's verdict, plus deterministic checks that a model cannot talk its way past. A draft
+      with violations goes back to the synthesis agent, at most as many times as you allow. Then
+      the graph pauses on a checkpoint and waits for you.
+    </p>
+    <p class="lede"><strong>Nothing leaves until you decide.</strong> Approve, edit or reject the draft below. Approval fires one HMAC-signed webhook; in this demo the service posts it to its own receiver, which verifies the signature and keeps what it received.</p>
+    <p class="stack">LangGraph StateGraph · FastAPI · PostgreSQL checkpoints · Pydantic v2 schemas · free OpenRouter models · HMAC-SHA256 webhook</p>
+  </section>
+
+  <section class="panel" id="run" aria-labelledby="run-title">
+    <h2 id="run-title">Run the pipeline</h2>
+    <p class="muted" id="demo-note" hidden>This is a public demo: runs are budgeted per visitor and per day, the number of self-correction loops is capped, and the webhook can only reach this service's own receiver.</p>
+    <form id="run-form" class="runform" autocomplete="off">
+      <div class="runform__grid">
+        <label class="field">
+          <span>Product (SKU)</span>
+          <select id="sku" name="sku" required></select>
+        </label>
+        <fieldset class="field field--channels" id="channels-box">
+          <legend>Channels</legend>
+          <div class="checks" id="channels"></div>
+        </fieldset>
+        <label class="field">
+          <span>Self-correction loops allowed</span>
+          <select id="max-revisions" name="max_revisions"></select>
+        </label>
+      </div>
+      <label class="field">
+        <span>Campaign brief (written by you, treated as untrusted text by the agents)</span>
+        <div class="chips" id="chips" aria-label="Sample briefs"></div>
+        <textarea id="brief" name="campaign_angle" rows="3" minlength="3" maxlength="300" required placeholder="Autumn restock: calm evenings and better sleep routines for busy parents."></textarea>
+      </label>
+      <div class="runform__row">
+        <button class="btn btn--primary" id="run-btn" type="submit">Run the pipeline</button>
+        <span class="muted small" id="limits"></span>
+      </div>
+    </form>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <article class="result" id="result" hidden>
+      <header class="result__head">
+        <span class="badge" id="result-badge"></span>
+        <span class="result__meta" id="result-meta"></span>
+      </header>
+      <p class="result__error" id="result-error" hidden></p>
+      <div class="path" id="result-path" aria-label="The nodes this run visited, in order"></div>
+
+      <section class="block" aria-labelledby="inventory-title">
+        <h3 id="inventory-title">Inventory facts the agents were given</h3>
+        <dl class="facts" id="inventory"></dl>
+      </section>
+
+      <section class="block" aria-labelledby="timeline-title">
+        <h3 id="timeline-title">Timeline: every node that ran</h3>
+        <ol class="timeline" id="timeline"></ol>
+      </section>
+
+      <section class="block" aria-labelledby="audits-title">
+        <h3 id="audits-title">Compliance audits</h3>
+        <div id="audits"></div>
+      </section>
+
+      <section class="block" id="instructions-block" aria-labelledby="instructions-title" hidden>
+        <h3 id="instructions-title">Revision instructions the synthesis agent received</h3>
+        <div id="instructions"></div>
+      </section>
+
+      <section class="block" id="draft-block" aria-labelledby="draft-title" hidden>
+        <h3 id="draft-title">The current draft</h3>
+        <div class="draft" id="draft"></div>
+      </section>
+
+      <section class="block review" id="review" aria-labelledby="review-title" hidden>
+        <h3 id="review-title">Your decision</h3>
+        <p class="muted" id="review-lede"></p>
+        <form id="review-form" class="reviewform" autocomplete="off">
+          <div class="runform__grid">
+            <label class="field">
+              <span>Reviewer id</span>
+              <input id="reviewer-id" name="reviewer_id" type="text" maxlength="80" required value="playground-visitor">
+            </label>
+            <label class="field field--wide">
+              <span>Notes (optional)</span>
+              <input id="reviewer-notes" name="notes" type="text" maxlength="2000" placeholder="Why you decided this">
+            </label>
+          </div>
+          <div class="editfields" id="edit-fields" hidden>
+            <p class="muted small">Edit the copy. What you send replaces the draft, is validated once more against the schema, and leaves with your name on the review.</p>
+            <label class="field"><span>Web title</span><input id="edit-title" type="text" maxlength="160"></label>
+            <label class="field"><span>Web description (simple HTML: p, ul, li, strong, em)</span><textarea id="edit-description" rows="6" maxlength="6000"></textarea></label>
+            <label class="field"><span>Marketplace bullets (exactly five, one per line)</span><textarea id="edit-bullets" rows="5" maxlength="2100"></textarea></label>
+            <label class="field"><span>Social post</span><textarea id="edit-social" rows="4" maxlength="1200"></textarea></label>
+            <label class="field"><span>Image generation prompt</span><textarea id="edit-image" rows="3" maxlength="1500"></textarea></label>
+            <label class="field"><span>Disclaimers included (one per line)</span><textarea id="edit-disclaimers" rows="3" maxlength="4900"></textarea></label>
+            <label class="field"><span>NPN displayed</span><input id="edit-npn" type="text" maxlength="40"></label>
+          </div>
+          <div class="runform__row">
+            <button class="btn btn--primary" id="approve-btn" type="button">Approve and dispatch</button>
+            <button class="btn" id="edit-btn" type="button">Edit the copy</button>
+            <button class="btn btn--primary" id="edit-send-btn" type="button" hidden>Send the edited copy</button>
+            <button class="btn" id="edit-cancel-btn" type="button" hidden>Cancel the edit</button>
+            <button class="btn btn--danger" id="reject-btn" type="button">Reject</button>
+          </div>
+        </form>
+        <p class="status" id="review-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="block" id="review-result" aria-labelledby="review-result-title" hidden>
+        <h3 id="review-result-title">What happened after your decision</h3>
+        <p id="review-line"></p>
+        <dl class="facts" id="delivery"></dl>
+        <p id="inbox-line" class="muted"></p>
+      </section>
+
+      <details class="raw">
+        <summary>Raw JSON response</summary>
+        <pre id="result-json"></pre>
+      </details>
+    </article>
+  </section>
+
+  <section class="panel" id="models" aria-labelledby="models-title">
+    <h2 id="models-title">Models</h2>
+    <p class="muted">The pipeline calls free OpenRouter models, in an ordered chain: the next model is tried only when a call fails, never on a wrong answer. With no models named in the settings, the service looks after the chain itself: it reads the chain this project's scheduled test published, and after a failed request it tests the free models with its own three cases (a draft, an audit that must catch planted violations, an audit that must pass a compliant draft) to fill a place a withdrawn model left.</p>
+    <div id="models-body"><p class="muted">Loading the picture of the chain…</p></div>
+    <div class="runform__row">
+      <button class="btn" id="models-test" type="button" hidden>Test the free models now</button>
+      <span class="small" id="models-line"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="how" aria-labelledby="how-title">
+    <h2 id="how-title">How a run flows</h2>
+    <p class="muted">Six nodes, one cycle, one breakpoint. After a run, the nodes it visited are highlighted below.</p>
+    <svg class="graph" id="graph" viewBox="0 0 960 215" role="img" aria-labelledby="graph-title graph-desc">
+      <title id="graph-title">The pipeline graph</title>
+      <desc id="graph-desc">Start, supervisor, inventory SQL agent, copy synthesis agent, compliance validator, human approval gate, then an interrupt before the webhook dispatch node and the end. The compliance validator sends violations back to the synthesis agent while revisions remain. The supervisor and the inventory agent can end the run early.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
+      </defs>
+      <g class="g-edges">
+        <circle class="endpoint" cx="18" cy="70" r="5"/>
+        <path class="edge" d="M24 70H30" marker-end="url(#arrow)"/>
+        <path class="edge" d="M159 70H179" marker-end="url(#arrow)"/>
+        <path class="edge" d="M309 70H329" marker-end="url(#arrow)"/>
+        <path class="edge" d="M459 70H479" marker-end="url(#arrow)"/>
+        <path class="edge" d="M609 70H629" marker-end="url(#arrow)"/>
+        <path class="edge" d="M759 70H779" marker-end="url(#arrow)"/>
+        <path class="edge" d="M909 70H929" marker-end="url(#arrow)"/>
+        <circle class="endpoint" cx="936" cy="70" r="5"/>
+        <path class="edge edge--replay" d="M95 48C95 12 395 12 395 46" marker-end="url(#arrow)"/>
+        <text class="label" x="245" y="22" text-anchor="middle">inventory already loaded (replay)</text>
+        <path class="edge edge--cycle" id="graph-cycle" d="M545 92C545 150 395 150 395 95" marker-end="url(#arrow)"/>
+        <text class="label label--cycle" x="470" y="146" text-anchor="middle">violations and revision_count &lt; max_revisions</text>
+        <text class="label" x="619" y="58" text-anchor="middle">compliant, or escalated</text>
+        <path class="edge" d="M95 92V120" marker-end="url(#arrow)"/>
+        <text class="label" x="95" y="138" text-anchor="middle">END: invalid request</text>
+        <path class="edge" d="M245 92V120" marker-end="url(#arrow)"/>
+        <text class="label" x="245" y="138" text-anchor="middle">END: SKU unknown or out of stock</text>
+        <path class="interrupt" id="graph-interrupt" d="M769 36V104"/>
+        <text class="label label--interrupt" x="769" y="28" text-anchor="middle">interrupt_before</text>
+        <text class="label label--interrupt" x="769" y="120" text-anchor="middle">a human decides</text>
+      </g>
+      <g class="g-nodes">
+        <g class="node node--deterministic" data-node="supervisor"><rect x="31" y="48" width="128" height="44" rx="10"/><text x="95" y="66" text-anchor="middle">Supervisor</text><text class="kind" x="95" y="82" text-anchor="middle">deterministic</text></g>
+        <g class="node node--tool" data-node="inventory_sql_agent"><rect x="181" y="48" width="128" height="44" rx="10"/><text x="245" y="66" text-anchor="middle">Inventory SQL Agent</text><text class="kind" x="245" y="82" text-anchor="middle">tool</text></g>
+        <g class="node node--llm" data-node="copy_synthesis_agent"><rect x="331" y="48" width="128" height="44" rx="10"/><text x="395" y="66" text-anchor="middle">Copy Synthesis Agent</text><text class="kind" x="395" y="82" text-anchor="middle">llm</text></g>
+        <g class="node node--llm" data-node="compliance_validator"><rect x="481" y="48" width="128" height="44" rx="10"/><text x="545" y="66" text-anchor="middle">Compliance Validator</text><text class="kind" x="545" y="82" text-anchor="middle">llm + checks</text></g>
+        <g class="node node--deterministic" data-node="human_approval_gate"><rect x="631" y="48" width="128" height="44" rx="10"/><text x="695" y="66" text-anchor="middle">Human Approval Gate</text><text class="kind" x="695" y="82" text-anchor="middle">deterministic</text></g>
+        <g class="node node--mutation" data-node="webhook_dispatch"><rect x="781" y="48" width="128" height="44" rx="10"/><text x="845" y="66" text-anchor="middle">Webhook Dispatch</text><text class="kind" x="845" y="82" text-anchor="middle">mutation</text></g>
+      </g>
+    </svg>
+    <ol class="steps">
+      <li><strong>Supervisor.</strong> Validates the request (SKU code, channels, brief, revision budget), resets the revision counter, and routes: to the inventory agent on a fresh thread, straight to synthesis when the inventory is already loaded, to END when the request is invalid.</li>
+      <li><strong>Inventory SQL Agent.</strong> One parameterized, read-only lookup of the SKU. No model is involved: a SKU lookup is not a decision a model should make. An unknown SKU or a stock of zero ends the run here.</li>
+      <li><strong>Copy Synthesis Agent.</strong> A model drafts the title, product page, five marketplace bullets, a social post, an image prompt, the disclaimers and the NPN, under a strict JSON schema. On a revision it receives the previous draft and the exact violations to fix.</li>
+      <li><strong>Compliance Validator.</strong> A model audits the draft against the rules; then Python checks what can be checked deterministically (NPN present, no prohibited claims, licensed amounts, mandatory risk statements verbatim). A finding from the checks is a violation whatever the model said.</li>
+      <li><strong>Human Approval Gate.</strong> Marks the thread as waiting. The graph is compiled with <code>interrupt_before=["webhook_dispatch"]</code>, so it stops on a checkpoint right after this node, with everything persisted in PostgreSQL.</li>
+      <li><strong>Webhook Dispatch.</strong> The only mutation. It refuses to send unless the human review status is approved or edited, validates the copy once more, signs the payload with HMAC-SHA256 and delivers it with retries. Every attempt is written to the audit log.</li>
+    </ol>
+    <details class="raw" id="topology-box" hidden>
+      <summary>The edges, as the code declares them</summary>
+      <ul id="topology"></ul>
+    </details>
+  </section>
+
+  <section class="panel" id="rules" aria-labelledby="rules-title">
+    <h2 id="rules-title">The rules</h2>
+    <p class="muted">Modelled on Health Canada's framework for Natural Health Products. The auditor is told these rules; the deterministic checks enforce the ones that can be checked mechanically. This is a demo, not legal advice.</p>
+    <div class="cards" id="rules-cards"><p class="muted">Loading the rules…</p></div>
+  </section>
+
+  <section class="panel" id="prompts" aria-labelledby="prompts-title">
+    <h2 id="prompts-title">The prompts</h2>
+    <p class="muted">Both system prompts are static strings. Everything that varies goes in the user message, and the campaign brief travels inside tags with a random suffix, declared untrusted: a brief that says "ignore your rules" is data, not an instruction.</p>
+    <details class="raw">
+      <summary>Copy Synthesis Agent: system prompt</summary>
+      <pre id="synthesis-prompt"></pre>
+    </details>
+    <details class="raw">
+      <summary>Compliance Validator: system prompt</summary>
+      <pre id="audit-prompt"></pre>
+    </details>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__row">
+    <span id="foot-provider"></span>
+    <a id="repo-link" href="https://github.com/nickdesjardins/autonomous-operation-marketing">Code on GitHub</a>
+  </div>
+</footer>
+</body>
+</html>

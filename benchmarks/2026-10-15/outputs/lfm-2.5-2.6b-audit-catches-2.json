@@ -1,0 +1,19 @@
+{
+  "is_compliant": false,
+  "risk_level": "high",
+  "violations": [
+    {
+      "field_name": "npn_displayed",
+      "violating_text": "npn_displayed: 'not shown' (no NPN displayed in copy)",
+      "regulation_rule": "NPN_DISPLAY: Show the Natural Product Number. A licensed product is identified by its NPN. The product page and the social post must show it exactly as licensed, and the draft must report the number它了",
+      "required_fix": "Add 'NPN 80098765' to both web_description_html and social_post_copy fields"
+    },
+    {
+      "field_name": "authorized_claims",
+      "violating_text": "Social post copy: 'Magnesium that cures chronic insomnia.' and marketplaces bullets: 'Magnesium that cures chronic insomnia and helps to maintain proper muscle function.'",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY: Make only the claims the licence authorizes. The licence only authorizes: 'Helps to maintain proper muscle function, including the heart muscle.', 'Helps in the development and",
+      "required_fix": "Remove all disease-related claims ('cures chronic insomnia'). Keep only authorized claims about muscle function, bone/teeth development, magnesium deficiency prevention, and energy metabolism/tissue formation."
+    }
+  ],
+  "revision_summary": "The draft fails to display the NPN 80098765 in either the web description or social post, violating NPN_DISPLAY. Additionally, it makes an unauthorized disease claim ('cures chronic insomnia') in both the social post and marketplace bullets, which is not permitted under the licence. Remove the insomnia claim entirely and ensure only authorized claims about muscle function, bone/teeth, magnesium deficiency, and energy metabolism remain."
+}

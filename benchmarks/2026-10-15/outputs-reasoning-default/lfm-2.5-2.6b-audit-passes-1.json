@@ -1,0 +1,13 @@
+{
+  "is_compliant": false,
+  "risk_level": "high",
+  "violations": [
+    {
+      "field_name": "disclaimers_included",
+      "violating_text": "Missing mandatory risk statement: 'Keep out of reach of children.'",
+      "regulation_rule": "RISK_INFORMATION - All mandatory risk statements must be included verbatim in disclaimers_included. The licence requires three mandatory warnings, but only two are present.",
+      "required_fix": "Add the missing mandatory warning 'Keep out of reach of children.' to the disclaimers_included list."
+    }
+  ],
+  "revision_summary": "The draft is missing a mandatory risk statement. Add 'Keep out of reach of children.' to the disclaimers_included array to comply with the licence requirements. All other elements (NPN display, authorized claims, dosage accuracy) are correct."
+}

@@ -1,0 +1,13 @@
+{
+  "is_compliant": false,
+  "risk_level": "low",
+  "violations": [
+    {
+      "field_name": "web_description_html",
+      "violating_text": "Magnesium Bisglycinate 200 mg helps to maintain proper muscle function, including the heart muscle, and helps in energy metabolism.",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY",
+      "required_fix": "The claim 'helps in energy metabolism' is not an authorized claim; the authorized claim is 'Helps in energy metabolism and in tissue formation.' The draft omits 'and in tissue formation,' weakening the claim. Restore the full authorized claim or reword to keep its meaning."
+    }
+  ],
+  "revision_summary": "- Restore the full authorized claim 'Helps in energy metabolism and in tissue formation' in the web description. - All other elements (NPN, dosage, disclaimers) are compliant."
+}

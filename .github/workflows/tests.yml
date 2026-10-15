@@ -1,0 +1,36 @@
+# Runs the hermetic test suite on every push to main and on every pull request.
+#
+# It needs no API key, no database and no network beyond pip: every external service is
+# replaced by a stand-in (tests/conftest.py), so it costs nothing and stores no secret.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: pytest + ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          # The same file tells the host which Python to run the service on.
+          python-version-file: .python-version
+          cache: pip
+      - name: Install requirements
+        # ruff is pinned: a newer release can change formatting and fail the check by itself.
+        run: pip install -r requirements.txt ruff==0.17.0
+      - name: Lint and format check
+        run: |
+          ruff check app tests scripts
+          ruff format --check app tests scripts
+      - name: Run the hermetic suite
+        run: python -m pytest -q

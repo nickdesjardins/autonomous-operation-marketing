@@ -1,0 +1,101 @@
+{
+  "measured": "2026-10-15",
+  "passes": 3,
+  "cases": [
+    "synthesis",
+    "audit-catches",
+    "audit-passes"
+  ],
+  "models": [
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "calls": 9,
+      "no_answer": 0,
+      "answered": 9,
+      "correct": 8,
+      "median_seconds": 9.7,
+      "slowest_seconds": 12.98,
+      "errors": [],
+      "by_case": {
+        "synthesis": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 9.7
+        },
+        "audit-catches": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 9.4
+        },
+        "audit-passes": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 2,
+          "median_seconds": 12.4
+        }
+      }
+    },
+    {
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "calls": 9,
+      "no_answer": 0,
+      "answered": 9,
+      "correct": 9,
+      "median_seconds": 9.1,
+      "slowest_seconds": 15.33,
+      "errors": [],
+      "by_case": {
+        "synthesis": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 8.6
+        },
+        "audit-catches": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 9.1
+        },
+        "audit-passes": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 12.1
+        }
+      }
+    },
+    {
+      "model": "dots-studio/dots-3-note-preview:free",
+      "calls": 9,
+      "no_answer": 0,
+      "answered": 9,
+      "correct": 7,
+      "median_seconds": 11.0,
+      "slowest_seconds": 14.85,
+      "errors": [],
+      "by_case": {
+        "synthesis": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 14.7
+        },
+        "audit-catches": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 3,
+          "median_seconds": 11.0
+        },
+        "audit-passes": {
+          "sent": 3,
+          "answered": 3,
+          "correct": 1,
+          "median_seconds": 5.1
+        }
+      }
+    }
+  ]
+}

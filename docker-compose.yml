@@ -1,0 +1,48 @@
+# PostgreSQL 16 for local development: the inventory tables and the LangGraph checkpoints live
+# in the same database. sql/init_inventory.sql runs once, on the first boot of the volume, and
+# seeds the sample SKUs; the service applies the same idempotent statements at start-up, so a
+# database that already exists (or a hosted one) needs nothing by hand.
+#
+#   docker compose up -d postgres
+#
+services:
+  postgres:
+    image: postgres:16
+    container_name: ops-pipeline-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ops}
+      POSTGRES_USER: ${POSTGRES_USER:-ops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ops}
+    # Bound to loopback by default; set POSTGRES_BIND=0.0.0.0 to expose it on the network, and
+    # change the password first.
+    ports:
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/init_inventory.sql:/docker-entrypoint-initdb.d/01-init-inventory.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ops} -d ${POSTGRES_DB:-ops}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Optional: run the API in Docker too -> `docker compose --profile full up --build`
+  api:
+    build: .
+    container_name: ops-pipeline-api
+    profiles: ["full"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ops}:${POSTGRES_PASSWORD:-ops}@postgres:5432/${POSTGRES_DB:-ops}
+    ports:
+      - "${API_BIND:-127.0.0.1}:8000:8000"
+
+volumes:
+  pgdata:

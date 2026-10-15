@@ -1,0 +1,25 @@
+{
+  "is_compliant": false,
+  "risk_level": "high",
+  "violations": [
+    {
+      "field_name": "web_description_html",
+      "violating_text": "Magnesium Bisglycinate 200 mg cures chronic insomnia and helps to maintain proper muscle function.",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY - 'cures chronic insomnia' is not an authorized claim. The license only authorizes claims about muscle function, bones/teeth, preventing magnesium deficiency, and energy/metabol",
+      "required_fix": "Remove the phrase 'cures chronic insomnia' from the web description. Keep only the authorized claim about muscle function."
+    },
+    {
+      "field_name": "social_post_copy",
+      "violating_text": "Magnesium that cures chronic insomnia. #sleep",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY - 'cures chronic insomnia' is not an authorized claim. The license only authorizes muscle function, bone/teeth, magnesium deficiency prevention, and energy metabolism/tissue",
+      "required_fix": "Replace 'cures chronic insomnia' with a non-disease-related message. The current claim is a disease/symptom claim not permitted by the licence."
+    },
+    {
+      "field_name": "npn_displayed",
+      "violating_text": "not shown",
+      "regulation_rule": "NPN_DISPLAY - The product page and social post must show the NPN exactly as licensed (NPN 80098765). The draft currently indicates it is not shown.",
+      "required_fix": "Add the NPN number '80098765' to both the web_description_html and social_post_copy fields."
+    }
+  ],
+  "revision_summary": "Remove 'cures chronic insomnia' from web_description_html and social_post_copy as it is not an authorized claim. Add the NPN number 80098765 to both the web description and social post. All other content is compliant."
+}

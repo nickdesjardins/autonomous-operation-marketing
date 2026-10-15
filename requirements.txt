@@ -1,0 +1,32 @@
+# Exact versions on purpose. The host that runs the service installs this file again at every
+# deploy, so "whatever is newest that day" would mean running versions nobody tested. These
+# are the versions the test suite passes on. To move one: change the number, run pytest, commit.
+
+# --- API ----------------------------------------------------------------------
+fastapi==0.143.1
+starlette==1.8.0             # fastapi brings it anyway; named because app/main.py imports it
+uvicorn[standard]==0.54.0
+
+# --- Validation and configuration --------------------------------------------
+pydantic==2.14.1
+pydantic-settings==2.16.0
+python-dotenv==1.2.4
+
+# --- Graph orchestration and PostgreSQL checkpoints --------------------------
+langgraph==1.2.15
+langgraph-checkpoint==4.3.0
+langgraph-checkpoint-postgres==3.2.0
+langchain-core==1.6.10
+psycopg[binary,pool]==3.3.6   # one driver for the inventory, the webhook tables and the saver
+
+# --- Model providers ----------------------------------------------------------
+openai==3.31.0               # OpenRouter and any OpenAI-compatible endpoint (Chat Completions)
+anthropic==1.14.0            # LLM_PROVIDER=anthropic (official SDK, structured outputs)
+
+# --- HTTP (webhook dispatch, OpenRouter allowance) and tests -------------------
+httpx==0.28.1                # also drives the app in-process in the test suite (ASGITransport)
+pytest==9.1.1
+pytest-asyncio==1.4.0
+
+# --- Optional: embedded PostgreSQL for the live tests, not installed by default ---
+# pgserver==0.1.4            # python scripts/run_live_db_tests.py installs it on demand

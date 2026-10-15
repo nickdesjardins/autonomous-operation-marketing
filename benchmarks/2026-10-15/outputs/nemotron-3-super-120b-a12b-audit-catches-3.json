@@ -1,0 +1,25 @@
+{
+  "is_compliant": false,
+  "risk_level": "high",
+  "violations": [
+    {
+      "field_name": "social_post_copy",
+      "violating_text": "Magnesium that cures chronic insomnia.",
+      "regulation_rule": "NO_DISEASE_CLAIMS",
+      "required_fix": "Remove the claim that the product cures chronic insomnia."
+    },
+    {
+      "field_name": "web_description_html",
+      "violating_text": "Magnesium Bisglycinate 200 mg cures chronic insomnia and helps to maintain proper muscle function.",
+      "regulation_rule": "NO_DISEASE_CLAIMS",
+      "required_fix": "Remove the claim that the product cures chronic insomnia."
+    },
+    {
+      "field_name": "npn_displayed",
+      "violating_text": "not shown",
+      "regulation_rule": "NPN_DISPLAY",
+      "required_fix": "Display the NPN as 'NPN 80098765' in the web_description_html and social_post_copy, and report the number displayed in npn_displayed."
+    }
+  ],
+  "revision_summary": "Remove disease claims about curing insomnia from social_post_copy and web_description_html. Display the NPN as 'NPN 80098765' in the web_description_html and social_post_copy, and update npn_displayed to reflect the displayed number."
+}

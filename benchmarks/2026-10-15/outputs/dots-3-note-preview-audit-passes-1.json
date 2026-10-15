@@ -1,0 +1,19 @@
+{
+  "is_compliant": false,
+  "risk_level": "medium",
+  "violations": [
+    {
+      "field_name": "web_title",
+      "violating_text": "Magnesium Bisglycinate 20 mg: gentle daily magnesium",
+      "regulation_rule": "NO_GUARANTEES",
+      "required_fix": "Remove the word 'gentle' from the title to avoid implying an absolute safety or tolerance guarantee not authorized by the licence."
+    },
+    {
+      "field_name": "web_description_html",
+      "violating_text": "One vegetable capsule, one to two times daily.",
+      "regulation_rule": "DOSAGE_ACCURACY",
+      "required_fix": "Change 'One vegetable capsule, one to two times daily' to '1 capsule, 1 to 2 times daily' to match the licensed serving size wording exactly."
+    }
+  ],
+  "revision_summary": "Remove the unauthorized 'gentle' descriptor from the title as it implies a safety guarantee. Ensure the dosage description in the web description matches the licensed serving size exactly."
+}

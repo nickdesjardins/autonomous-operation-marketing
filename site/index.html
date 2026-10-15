@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- This page cannot send response headers, so its security policy is set here. Scripts and
+       styles come from this page's own files only. The one outside address is the live demo's
+       icon, which assets/site.js loads as a picture to learn that the demo is awake. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' https://*.onrender.com; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <meta name="format-detection" content="telephone=no">
+  <title>Multi-Agent Operations Pipeline</title>
+  <meta name="description" content="An autonomous multi-agent pipeline for product marketing: a LangGraph state machine drafts channel copy for a Natural Health Product, audits it against Health Canada NHP rules, loops on violations, pauses for a human, and fires a signed webhook. Every step is checkpointed in PostgreSQL. Runs on free models.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Multi-Agent Operations Pipeline">
+  <meta property="og:description" content="Stateful agents with cyclic self-correction and a human-in-the-loop gate: LangGraph, FastAPI, PostgreSQL checkpoints, HMAC-signed webhooks, free OpenRouter models.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/theme.js"></script>
+  <script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#runs">Skip to the recorded runs</a>
+
+<header class="topbar">
+  <div class="wrap topbar__row">
+    <a class="brand" href="./">
+      <svg class="brand__mark" viewBox="0 0 26 26" aria-hidden="true"><rect class="bg" width="26" height="26" rx="7"/><circle class="pt" cx="7.5" cy="13" r="2.4"/><circle class="pt" cx="13" cy="7.5" r="2.4"/><circle class="pt" cx="18.5" cy="13" r="2.4"/><circle class="dot" cx="13" cy="18.5" r="2.4"/><path class="ln" d="M9.6 11.4l1.8-1.8M14.6 9.6l1.8 1.8M9.6 14.6l1.8 1.8M14.6 16.4l1.8-1.8"/></svg>
+      <span>Multi-Agent Operations Pipeline</span>
+    </a>
+    <nav class="topbar__nav" aria-label="On this page">
+      <a href="#runs">Recorded runs</a>
+      <a href="#flow">How a run flows</a>
+      <a href="#rules">The rules</a>
+      <a href="#why">Why a DAG is not enough</a>
+      <a href="#stack">Stack</a>
+    </nav>
+    <a class="chip-link" id="demo-chip" hidden><span class="dotmark" aria-hidden="true"></span>Live demo</a>
+    <button class="iconbtn" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+      <svg class="icon theme-icon--light" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8 8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2z"/></svg>
+      <svg class="icon theme-icon--dark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero__grid">
+      <div>
+        <p class="kicker">Applied AI · stateful agents · human-in-the-loop</p>
+        <h1>Copy that ships only <span>after a human says yes.</span></h1>
+        <p class="lede">
+          This service turns a product SKU and a campaign brief into channel marketing copy for a
+          Natural Health Product: a web title and product page, five marketplace bullets, a social
+          post, an image prompt, the mandatory disclaimers and the licence number. A supervisor
+          validates the request, a tool reads the SKU from PostgreSQL, a synthesis agent drafts,
+          and a compliance validator audits the draft against Health Canada NHP rules: a model's
+          verdict, plus deterministic checks that a model cannot talk its way past. A draft with
+          violations goes back to the synthesis agent, a bounded number of times. Then the graph
+          pauses on a checkpoint and waits for a person.
+        </p>
+        <p class="lede"><strong>The only mutation is behind the gate.</strong> Approval or an edit resumes the graph and fires one HMAC-signed webhook, delivered with retries and written to an audit log. A rejection ends the thread with nothing sent. The recorded runs below show all of it, as the API returned it.</p>
+        <p class="stackline">LangGraph StateGraph · FastAPI · PostgreSQL checkpoints (langgraph-checkpoint-postgres) · Pydantic v2 · free OpenRouter models · HMAC-SHA256 webhook</p>
+      </div>
+      <div class="demo" id="demo" aria-label="Live demo">
+        <!-- THE ONE PLACE that holds the address of the live demo: the Render service's address
+             with /#run after it, https:// written once. If the service is ever re-created under
+             another name, change it here; tests/test_site.py checks the form. With a host that
+             ends in .invalid, the page says the demo is not online yet and asks nothing. -->
+        <a class="btn btn--primary btn--lg" id="demo-link" href="https://multi-agent-ops-pipeline.invalid/#run">Open the live demo</a>
+        <a class="btn btn--lg" href="https://github.com/nickdesjardins/autonomous-operation-marketing">Code on GitHub</a>
+        <p class="demo__line" id="demo-words" role="status">The live demo runs on free hosting and sleeps between visits. Opening it wakes it, which takes about a minute.</p>
+        <p class="demo__cost">Runs at zero marginal cost: free OpenRouter models for the two agents, serverless PostgreSQL for the checkpoints, the webhook delivered to the service's own receiver.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" id="runs" aria-labelledby="runs-title">
+    <div class="section__head">
+      <h2 id="runs-title">Recorded runs</h2>
+      <p class="muted" id="runs-meta">Real runs of the service, saved as the API returned them.</p>
+    </div>
+    <div class="tabs" id="run-tabs" role="tablist" aria-label="Recorded runs"></div>
+    <article class="card run" id="run">
+      <p class="muted" id="run-fallback">The recorded runs are read from <a href="recorded/runs.json">recorded/runs.json</a>; when that file is not there yet, or JavaScript is off, this sentence is all there is.</p>
+    </article>
+    <ul class="tiles" id="tiles" hidden>
+      <li class="tile"><strong id="tile-runs">-</strong><span>runs recorded</span></li>
+      <li class="tile"><strong id="tile-audits">-</strong><span>drafts audited</span></li>
+      <li class="tile"><strong id="tile-violations">-</strong><span>violations caught</span></li>
+      <li class="tile"><strong id="tile-deterministic">-</strong><span>of them by the deterministic checks</span></li>
+      <li class="tile"><strong id="tile-time">-</strong><span>median time per run, from the node timings in the trace</span></li>
+      <li class="tile"><strong>$0.00</strong><span>marginal cost: free models, free tiers</span></li>
+    </ul>
+    <p class="footnote" id="runs-note" hidden>Six recorded scenarios show that the pipeline does what it says, not how often a model gets the copy right first time. The briefs were written for the scenarios; the responses were not edited.</p>
+  </section>
+
+  <section class="wrap section" id="flow" aria-labelledby="flow-title">
+    <div class="section__head">
+      <h2 id="flow-title">How a run flows</h2>
+    </div>
+    <p class="muted section__intro">Six nodes, one cycle, one breakpoint. The graph is compiled with <code>interrupt_before=["webhook_dispatch"]</code>, so every thread stops on a checkpoint before the only node that touches the outside world.</p>
+    <svg class="graph" id="graph" viewBox="0 0 960 215" role="img" aria-labelledby="graph-title graph-desc">
+      <title id="graph-title">The pipeline graph</title>
+      <desc id="graph-desc">Start, supervisor, inventory SQL agent, copy synthesis agent, compliance validator, human approval gate, then an interrupt before the webhook dispatch node and the end. The compliance validator sends violations back to the synthesis agent while revisions remain. The supervisor and the inventory agent can end the run early.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z"/></marker>
+      </defs>
+      <g class="g-edges">
+        <circle class="endpoint" cx="18" cy="70" r="5"/>
+        <path class="edge" d="M24 70H30" marker-end="url(#arrow)"/>
+        <path class="edge" d="M159 70H179" marker-end="url(#arrow)"/>
+        <path class="edge" d="M309 70H329" marker-end="url(#arrow)"/>
+        <path class="edge" d="M459 70H479" marker-end="url(#arrow)"/>
+        <path class="edge" d="M609 70H629" marker-end="url(#arrow)"/>
+        <path class="edge" d="M759 70H779" marker-end="url(#arrow)"/>
+        <path class="edge" d="M909 70H929" marker-end="url(#arrow)"/>
+        <circle class="endpoint" cx="936" cy="70" r="5"/>
+        <path class="edge edge--replay" d="M95 48C95 12 395 12 395 46" marker-end="url(#arrow)"/>
+        <text class="label" x="245" y="22" text-anchor="middle">inventory already loaded (replay)</text>
+        <path class="edge edge--cycle" id="graph-cycle" d="M545 92C545 150 395 150 395 95" marker-end="url(#arrow)"/>
+        <text class="label label--cycle" x="470" y="146" text-anchor="middle">violations and revision_count &lt; max_revisions</text>
+        <text class="label" x="619" y="58" text-anchor="middle">compliant, or escalated</text>
+        <path class="edge" d="M95 92V120" marker-end="url(#arrow)"/>
+        <text class="label" x="95" y="138" text-anchor="middle">END: invalid request</text>
+        <path class="edge" d="M245 92V120" marker-end="url(#arrow)"/>
+        <text class="label" x="245" y="138" text-anchor="middle">END: SKU unknown or out of stock</text>
+        <path class="interrupt" id="graph-interrupt" d="M769 36V104"/>
+        <text class="label label--interrupt" x="769" y="28" text-anchor="middle">interrupt_before</text>
+        <text class="label label--interrupt" x="769" y="120" text-anchor="middle">a human decides</text>
+      </g>
+      <g class="g-nodes">
+        <g class="node node--deterministic" data-node="supervisor"><rect x="31" y="48" width="128" height="44" rx="10"/><text x="95" y="66" text-anchor="middle">Supervisor</text><text class="kind" x="95" y="82" text-anchor="middle">deterministic</text></g>
+        <g class="node node--tool" data-node="inventory_sql_agent"><rect x="181" y="48" width="128" height="44" rx="10"/><text x="245" y="66" text-anchor="middle">Inventory SQL Agent</text><text class="kind" x="245" y="82" text-anchor="middle">tool</text></g>
+        <g class="node node--llm" data-node="copy_synthesis_agent"><rect x="331" y="48" width="128" height="44" rx="10"/><text x="395" y="66" text-anchor="middle">Copy Synthesis Agent</text><text class="kind" x="395" y="82" text-anchor="middle">llm</text></g>
+        <g class="node node--llm" data-node="compliance_validator"><rect x="481" y="48" width="128" height="44" rx="10"/><text x="545" y="66" text-anchor="middle">Compliance Validator</text><text class="kind" x="545" y="82" text-anchor="middle">llm + checks</text></g>
+        <g class="node node--deterministic" data-node="human_approval_gate"><rect x="631" y="48" width="128" height="44" rx="10"/><text x="695" y="66" text-anchor="middle">Human Approval Gate</text><text class="kind" x="695" y="82" text-anchor="middle">deterministic</text></g>
+        <g class="node node--mutation" data-node="webhook_dispatch"><rect x="781" y="48" width="128" height="44" rx="10"/><text x="845" y="66" text-anchor="middle">Webhook Dispatch</text><text class="kind" x="845" y="82" text-anchor="middle">mutation</text></g>
+      </g>
+    </svg>
+    <ol class="flow">
+      <li><span class="flow__n">1</span><h3>Supervisor</h3><p>Validates the request (SKU code, channels, brief, revision budget), resets the revision counter and routes: to the inventory agent on a fresh thread, straight to synthesis when the inventory is already loaded, to END when the request is invalid.</p><p class="flow__code"><a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/app/graph/nodes.py">graph/nodes.py</a></p></li>
+      <li><span class="flow__n">2</span><h3>Inventory SQL Agent</h3><p>One parameterized, read-only lookup of the SKU. No model writes SQL: the tool's arguments are validated by Pydantic and the query is fixed. An unknown SKU or a stock of zero ends the run here, before any model is called.</p><p class="flow__code"><a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/app/graph/tools.py">graph/tools.py</a></p></li>
+      <li><span class="flow__n">3</span><h3>Copy Synthesis Agent</h3><p>A model drafts every field under a strict JSON schema, grounded in the licence data. On a revision it receives the previous draft and the exact violations to fix. The brief travels in tags with a random suffix and is declared untrusted.</p><p class="flow__code"><a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/app/graph/prompts.py">graph/prompts.py</a></p></li>
+      <li><span class="flow__n">4</span><h3>Compliance Validator</h3><p>A model audits the draft against the rules, then Python checks what can be checked deterministically: the NPN is shown, no prohibited claim appears, amounts next to an ingredient are the licensed ones, every mandatory risk statement is there word for word. A finding from the checks is a violation whatever the model said.</p><p class="flow__code"><a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/app/compliance/rules.py">compliance/rules.py</a></p></li>
+      <li><span class="flow__n">5</span><h3>Human Approval Gate</h3><p>Marks the thread as waiting; the graph stops right after it on a checkpoint in PostgreSQL. The thread can be resumed by another process, hours later: the API reads the checkpoint, applies the reviewer's decision to the state and continues.</p><p class="flow__code"><a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/app/graph/builder.py">graph/builder.py</a></p></li>
+      <li><span class="flow__n">6</span><h3>Webhook Dispatch</h3><p>Refuses to send unless the review status is approved or edited, validates the copy once more, signs the body with HMAC-SHA256 over the timestamp and the bytes, delivers with retries on 429, 5xx and timeouts, and records every attempt. A rejection is written as if this node had run, so it never executes.</p><p class="flow__code"><a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/app/services/webhook_dispatcher.py">services/webhook_dispatcher.py</a></p></li>
+    </ol>
+    <details class="prompt" id="prompts" hidden>
+      <summary>Read the two system prompts the agents work under</summary>
+      <h3>Copy Synthesis Agent</h3>
+      <pre id="synthesis-prompt"></pre>
+      <h3>Compliance Validator</h3>
+      <pre id="audit-prompt"></pre>
+    </details>
+  </section>
+
+  <section class="wrap section" id="rules" aria-labelledby="rules-title">
+    <div class="section__head">
+      <h2 id="rules-title">The rules</h2>
+      <p class="muted">Modelled on Health Canada's framework for Natural Health Products; a demo, not legal advice.</p>
+    </div>
+    <div class="cards">
+      <article class="card"><span class="sev" data-sev="high">high severity</span><h3>Show the Natural Product Number</h3><p>A licensed product is identified by its NPN. The product page and the social post must show it exactly as licensed, and the draft must report the number it displayed. Checked deterministically.</p></article>
+      <article class="card"><span class="sev" data-sev="high">high severity</span><h3>Make only the claims the licence authorizes</h3><p>Every health claim in the copy must be one of the product's authorized claims, or a plain restatement of one. New benefits, even plausible ones, are not allowed. The model's judgement, with the claims listed in the prompt.</p></article>
+      <article class="card"><span class="sev" data-sev="high">high severity</span><h3>No treatment, cure or prevention claims for diseases</h3><p>Advertising to the general public may not present the product as a treatment, cure, preventive or substitute for medical care for a disease. Words such as cure, treat, heal, reverse, antibiotic and kills infections are caught by regular expressions as well.</p></article>
+      <article class="card"><span class="sev" data-sev="medium">medium severity</span><h3>State ingredient amounts exactly as licensed</h3><p>An amount written next to an ingredient must be the licensed amount per serving, or the total across strains for a multi-strain product. The checks compare every amount within 60 characters of an ingredient name with the licence.</p></article>
+      <article class="card"><span class="sev" data-sev="high">high severity</span><h3>Include every mandatory risk statement verbatim</h3><p>The cautions and warnings the licence requires must be in the draft's disclaimers word for word. Paraphrases do not count: the texts are normalized and compared.</p></article>
+      <article class="card"><span class="sev" data-sev="medium">medium severity</span><h3>No guarantees, no safety absolutes, no approval claims</h3><p>Results cannot be guaranteed, the product cannot be called safe for everyone or free of side effects, "clinically proven" needs evidence the licence does not provide, and licensing is not an endorsement by Health Canada.</p></article>
+    </div>
+  </section>
+
+  <section class="wrap section" id="why" aria-labelledby="why-title">
+    <div class="section__head">
+      <h2 id="why-title">Why a DAG is not enough</h2>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <h3>The cycle</h3>
+        <p>A pipeline that runs once cannot correct itself. Here the compliance validator's findings become the next draft's instructions, and the graph loops back to the synthesis agent while <code>revision_count &lt; max_revisions</code>. The budget is a hard bound: when it is spent, violations go to a person instead of around again.</p>
+      </article>
+      <article class="card">
+        <h3>The checkpoint</h3>
+        <p>Every node run is saved to PostgreSQL by <code>langgraph-checkpoint-postgres</code>. A thread that stopped yesterday can be read, resumed and finished today, by another process: the state is not in anyone's memory.</p>
+      </article>
+      <article class="card">
+        <h3>The interrupt</h3>
+        <p>The graph is compiled with <code>interrupt_before</code> on the webhook node. The run stops with <code>next == ("webhook_dispatch",)</code>; the review route updates the state (approved, edited, or rejected as if the node had run) and resumes. The node itself refuses to send without an approval in the state.</p>
+      </article>
+      <article class="card">
+        <h3>Deterministic tools</h3>
+        <p>What can be checked by code is checked by code. The inventory lookup is a parameterized query, not model-written SQL, and the compliance checks (NPN, prohibited patterns, amounts, verbatim warnings) run after the model's audit and add to it. The audit trail says how many findings came from which.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="wrap section" id="models" aria-labelledby="models-title">
+    <div class="section__head">
+      <h2 id="models-title">The chain of free models</h2>
+    </div>
+    <p class="section__intro">The two agents call free OpenRouter models through an ordered chain: the next model is tried only when a call fails (a rate limit, an upstream error, a withdrawal, output that does not validate), never on a wrong answer. Free models are withdrawn often, so with no models named in the settings the service looks after the chain itself. At startup it reads the chain this project's scheduled test published (one small file on a branch of the repository, no key needed). After a request that a model of the chain did not answer, it asks OpenRouter's own page for that model; if the answer is "Model not found", the model leaves the chain and the free place is filled by a test of the free models with this project's own three cases: a draft, an audit that must catch planted violations, and an audit that must pass a compliant draft. The scheduled test runs the same cases on GitHub Actions and publishes what passes. Three rules: repair, never rank; a chain holds at most three places; a model must pass every case.</p>
+  </section>
+
+  <section class="wrap section" id="stack" aria-labelledby="stack-title">
+    <div class="section__head">
+      <h2 id="stack-title">What it runs on</h2>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Part</th><th>This demo (free)</th><th>Drop-in alternative</th></tr></thead>
+        <tbody>
+          <tr><td>Orchestration</td><td>LangGraph StateGraph with conditional edges, a cycle and <code>interrupt_before</code></td><td>The same graph; the nodes are plain async functions</td></tr>
+          <tr><td>API</td><td>FastAPI, Pydantic v2 request and response models, a body limit before parsing</td><td>Any ASGI host</td></tr>
+          <tr><td>Checkpoints and inventory</td><td id="stack-database">PostgreSQL on Neon, through one psycopg pool shared with the checkpointer</td><td>Any PostgreSQL 14+; <code>CHECKPOINTER=memory</code> for a laptop</td></tr>
+          <tr><td>Models</td><td id="stack-models">An ordered chain of free OpenRouter models, with fallback when one fails</td><td>Claude through the Anthropic SDK (<code>LLM_PROVIDER=anthropic</code>), OpenAI or any Chat Completions endpoint (<code>openai_compatible</code>)</td></tr>
+          <tr><td>Webhook</td><td id="stack-webhook">HMAC-SHA256 signed, delivered to the service's own receiver (<code>WEBHOOK_TARGET=self</code>)</td><td>Any HTTPS endpoint (<code>WEBHOOK_TARGET=url</code>), or a dry run</td></tr>
+          <tr><td>Hosting</td><td>Render free web service, Neon serverless PostgreSQL, GitHub Pages for this page</td><td>Docker Compose (PostgreSQL 16 and the API), any container host</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">The public demo is deliberately closed in three ways: runs are rate limited per visitor and capped per day, the number of self-correction loops is capped, and the webhook can only reach the service's own receiver.</p>
+    <p class="links">
+      <a href="https://github.com/nickdesjardins/autonomous-operation-marketing#readme">Read the README</a>
+      <a href="https://github.com/nickdesjardins/autonomous-operation-marketing/blob/main/docs/DEPLOY.md">How it is deployed</a>
+      <a href="https://nickdesjardins.github.io/Invoice-Extraction-Service/">Phase 1: Invoice Extraction Service</a>
+      <a href="https://nickdesjardins.github.io/hybrid-knowledge-rag/">Phase 2: Compliance Retrieval Engine</a>
+    </p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__row">
+    <span>Phase 3 of an Applied AI portfolio: stateful agents, cyclic self-correction, human-in-the-loop.</span>
+    <span id="foot-recorded"></span>
+  </div>
+</footer>
+</body>
+</html>

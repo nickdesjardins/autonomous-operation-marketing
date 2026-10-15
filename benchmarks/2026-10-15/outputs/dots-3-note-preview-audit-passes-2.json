@@ -1,0 +1,13 @@
+{
+  "is_compliant": false,
+  "risk_level": "medium",
+  "violations": [
+    {
+      "field_name": "web_description_html",
+      "violating_text": "helps in energy metabolism",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY",
+      "required_fix": "Remove or rephrase 'helps in energy metabolism' to align with an authorized claim, as it is not listed in the product's authorized claims."
+    }
+  ],
+  "revision_summary": "The draft is non-compliant due to an unauthorized energy claim in the web description. Remove 'helps in energy metabolism' or rephrase it to match an authorized claim. All other elements, including NPN display, dosage accuracy, and mandatory risk statements, are correctly included."
+}

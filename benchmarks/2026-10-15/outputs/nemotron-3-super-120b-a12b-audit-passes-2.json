@@ -1,0 +1,19 @@
+{
+  "is_compliant": false,
+  "risk_level": "low",
+  "violations": [
+    {
+      "field_name": "marketplace_bullets",
+      "violating_text": "200 mg of magnesium (magnesium bisglycinate) per vegetable capsule",
+      "regulation_rule": "DOSAGE_ACCURACY",
+      "required_fix": "State the ingredient amount exactly as licensed: 200 mg per capsule."
+    },
+    {
+      "field_name": "web_description_html",
+      "violating_text": "Magnesium Bisglycinate 200 mg helps to maintain proper muscle function, including the heart muscle, and helps in energy metabolism.",
+      "regulation_rule": "AUTHORIZED_CLAIMS_ONLY",
+      "required_fix": "Ensure all health claims are authorized. The claim 'helps in energy metabolism' is not authorized as a standalone claim; the authorized claim is 'Helps in energy metabolism and in tissue formation.' Remove or combine with tissue formation."
+    }
+  ],
+  "revision_summary": "Fix the dosage statement in marketplace_bullets to match the licensed amount per capsule. Revise the health claim in web_description_html to only use authorized claims, either by using the full authorized claim 'Helps in energy metabolism and in tissue formation' or removing the incomplete claim."
+}

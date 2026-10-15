@@ -1,0 +1,19 @@
+{
+  "is_compliant": false,
+  "risk_level": "high",
+  "violations": [
+    {
+      "field_name": "npn_displayed",
+      "violating_text": "npn_displayed: not shown",
+      "regulation_rule": "NPN_DISPLAY",
+      "required_fix": "Display the NPN number 80098765 in the web description and social post as required by the licence."
+    },
+    {
+      "field_name": "social_post_copy",
+      "violating_text": "Magnesium that cures chronic insomnia. #sleep",
+      "regulation_rule": "NO_DISEASE_CLAIMS",
+      "required_fix": "Remove the disease claim about curing insomnia. Replace with an authorized claim such as 'Helps to maintain proper muscle function, including the heart muscle.'"
+    }
+  ],
+  "revision_summary": "Add the NPN number 80098765 to the web description and social post. Remove the disease claim about curing insomnia from the social post and replace it with an authorized claim from the product's list (e.g., 'Helps to maintain proper muscle function, including the heart muscle')."
+}

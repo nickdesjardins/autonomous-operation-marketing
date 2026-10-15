@@ -1,0 +1,35 @@
+[project]
+name = "multi-agent-ops-pipeline"
+version = "1.0.0"
+description = "Autonomous multi-agent operations and marketing pipeline: LangGraph, FastAPI, PostgreSQL checkpoints, human-in-the-loop approval, signed webhooks"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "-q"
+# A test that stands still for two minutes prints where every thread stands, so that a run
+# that hangs on a busy machine or on GitHub says which test it was. Nothing fails.
+faulthandler_timeout = 120
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# B008: `Depends(...)` in parameter defaults is the FastAPI dependency idiom.
+ignore = ["B008"]
+
+[tool.ruff.lint.pycodestyle]
+# Code is formatted at 100 columns; docstrings, comments and prompt literals may run longer.
+max-line-length = 112
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+"app/graph/prompts.py" = ["E501"]
+"app/seed.py" = ["E501"]
