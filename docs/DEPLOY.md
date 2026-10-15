@@ -1,14 +1,15 @@
 # Putting the showcase online, step by step
 
-**Status (15 October 2026): not yet deployed.** The steps below are the plan, written from the
-code and from the two sibling projects that went online the same way. The section
+**Status (15 October 2026): online.** Steps 1 to 5 and 7 were followed to put it there; step 6
+(the scheduled test's key) is still to do. They stay here as the way to check it, change it, or
+rebuild it from scratch. The section
 [How far this guide has been tried](#how-far-this-guide-has-been-tried) says what was verified
-on a developer machine and what was not. Update the status line when the demo is live.
+and what was not.
 
 | What | Where | Address |
 |---|---|---|
 | The **project page**: recorded runs, the walkthrough, wakes the demo | GitHub Pages | <https://nickdesjardins.github.io/autonomous-operation-marketing/> |
-| The **live demo**: the API with its playground at `/` | Render (free web service, Python runtime) | to be filled in when deployed: `https://multi-agent-ops-pipeline.onrender.com` unless Render adds letters to the name |
+| The **live demo**: the API with its playground at `/` | Render (free web service, Python runtime) | <https://multi-agent-ops-pipeline.onrender.com/> |
 | The **database**: PostgreSQL, inventory and checkpoints | Neon (free plan) | not public |
 | The **language models** | OpenRouter free models | not public |
 
@@ -36,7 +37,7 @@ database line into the key box cannot send the database password to OpenRouter.
 
 ---
 
-## Step 1: put the code on GitHub (10 minutes)
+## Step 1: put the code on GitHub (10 minutes): done on 15 October 2026
 
 The folder is not a git repository yet. Create an empty **public** repository named
 `autonomous-operation-marketing` on <https://github.com/new> (no README, no licence, no
@@ -86,7 +87,7 @@ One more thing to know before the first push: `DEFAULT_PUBLISHED_URL` in `app/co
 this repository (`nickdesjardins/autonomous-operation-marketing`) as the place where the tested
 model chain is published. If the repository gets another name, change that constant at once.
 
-## Step 2: turn on GitHub Pages (5 minutes)
+## Step 2: turn on GitHub Pages (5 minutes): done on 15 October 2026
 
 1. Open the repository, then **Settings** (top bar of the repository), then **Pages** in the
    left sidebar.
@@ -125,7 +126,7 @@ Nothing needs to be created in the database by hand. At start-up the service run
 `inventory_skus`, `webhook_audit_log` and `webhook_inbox`, upserts the four sample SKUs and
 runs the checkpointer's own `setup()`, which creates the LangGraph checkpoint tables.
 
-## Step 4: create the live demo on Render (15 minutes)
+## Step 4: create the live demo on Render (15 minutes): done on 15 October 2026
 
 Before you start, open `.env.local` in an editor. You will copy two values from it. Copy only
 the part after the `=` sign, without quotes.
@@ -192,7 +193,7 @@ the part after the `=` sign, without quotes.
 If you typed a value wrong in step 6: service page > **Environment** > edit the value >
 **Save and deploy**.
 
-## Step 5: link the project page to the live demo (3 minutes)
+## Step 5: link the project page to the live demo (3 minutes): done on 15 October 2026
 
 `site/index.html` holds the live demo's address in one place. Today the line reads:
 
@@ -257,7 +258,7 @@ the owner has something to do: open the job "Test the free models, if a test is 
 the end of its step "Decide, test, and write the file to publish" for a line that begins
 "Failing this run on purpose:".
 
-## Step 7: record the runs for the project page (10 minutes)
+## Step 7: record the runs for the project page (10 minutes): done on 15 October 2026
 
 The page shows `site/recorded/runs.json`, which `scripts/record_runs.py` writes by driving the
 real application in-process, through the same routes, graph, PostgreSQL checkpointer and model
@@ -337,7 +338,19 @@ an audit per attempt, at most one redraft), the out-of-stock one none.
 
 ## How far this guide has been tried
 
-**Verified (15 October 2026, on a developer machine, nothing online):**
+**Verified (15 October 2026):**
+
+* **Steps 1, 2, 4 and 5 were performed**: the repository is public, the three workflows (Tests,
+  Project page, Model check) ran green on the first push, the project page is served by GitHub
+  Pages, and the Render service built from the Blueprint answers at its address. Its `/health`
+  reports `status: ok`, `environment: production`, `demo_mode: true`, the Neon database connected
+  with the checkpointer ready and the 4 sample SKUs, the free chain in automatic mode, and the
+  webhook target `self` with the service's own host. The CORS header for the project page's
+  origin is present on the API.
+* **One real run on the live service, right after the deploy**: `POST /api/v1/workflows/start`
+  for NR-MAG-200 paused at the gate after one compliant draft, `POST .../review` with
+  `approve` resumed it, the webhook was delivered to the service's own receiver (HTTP 200, one
+  attempt) and `GET /api/v1/webhooks/inbox` listed the delivery with a valid signature.
 
 * Every setting name, status value, log line and error message quoted in this guide and in
   `README.md` was read in the code it describes (`app/config.py`, `app/main.py`,
@@ -369,10 +382,10 @@ an audit per attempt, at most one redraft), the out-of-stock one none.
 
 **Not verified:**
 
-* Steps 1, 2, 4, 5 and 6 have not been performed: the GitHub repository, GitHub Pages, the
-  Render Blueprint, the link from the page to the demo and the model-check secret are described
-  from `render.yaml`, the workflows and the way Projects 1 and 2 were put online, not from a
-  deploy of this project.
+* Step 6 has not been performed: the repository has no `OPENROUTER_API_KEY` secret yet, so the
+  Model check run of the first push only said what was due and tested nothing, and no
+  `tested-models` branch exists. The service starts from the built-in default chain until a
+  list is published.
 * Memory and CPU on Render's free instance have not been measured. The service downloads no
   model and keeps one worker, so it should sit well inside 512 MB.
 

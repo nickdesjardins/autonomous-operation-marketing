@@ -22,7 +22,7 @@ upstream body.
   the address to give to people. It is a static page on GitHub Pages: it is there at once, shows
   recorded runs of the pipeline exactly as the API returned them, explains the graph, and wakes
   the live demo while it is read.
-* **The live demo:** to be filled in when deployed (a free Render web service; it sleeps between
+* **The live demo:** <https://multi-agent-ops-pipeline.onrender.com/> (a free Render web service; it sleeps between
   visits and takes about a minute to wake). It runs in demo mode: runs and reviews are open but
   budgeted, revisions are capped, and the webhook can only reach the service's own receiver. See
   [Public showcase](#public-showcase-demo-mode).
