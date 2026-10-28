@@ -1,0 +1,176 @@
+{
+  "version": 2,
+  "fingerprint": "477805df80d0432a",
+  "tested": "2026-10-28T16:02:52Z",
+  "chain": [
+    "liquid/lfm-2.5-2.6b:free",
+    "nvidia/nemotron-3.5-super-vl:free"
+  ],
+  "test": {
+    "started": "2026-10-28T16:02:20Z",
+    "found": [
+      "xingchen-agi/xing4.0-29b-a4b:free",
+      "nvidia/nemotron-3.5-super-vl:free",
+      "dots-studio/dots-3-note-preview:free",
+      "liquid/lfm-2.5-2.6b:free"
+    ],
+    "tested": [
+      "liquid/lfm-2.5-2.6b:free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "xingchen-agi/xing4.0-29b-a4b:free",
+      "nvidia/nemotron-3.5-super-vl:free"
+    ],
+    "left_out": [
+      "dots-studio/dots-3-note-preview:free"
+    ],
+    "gone": [
+      "nvidia/nemotron-3-super-120b-a12b:free"
+    ],
+    "cases": [
+      {
+        "id": "synthesis",
+        "title": "Write channel copy for NR-MAG-200 that passes the deterministic checks"
+      },
+      {
+        "id": "audit-catches",
+        "title": "Catch a planted cure claim and a missing NPN"
+      },
+      {
+        "id": "audit-passes",
+        "title": "Find a compliant draft compliant"
+      }
+    ],
+    "timeout_seconds": 60.0,
+    "calls": [
+      {
+        "model": "liquid/lfm-2.5-2.6b:free",
+        "case": "synthesis",
+        "outcome": "no_answer",
+        "correct": null,
+        "seconds": 0.32,
+        "error_type": "ProviderError"
+      },
+      {
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "case": "synthesis",
+        "outcome": "no_answer",
+        "correct": null,
+        "seconds": 0.19,
+        "error_type": "ProviderError"
+      },
+      {
+        "model": "xingchen-agi/xing4.0-29b-a4b:free",
+        "case": "synthesis",
+        "outcome": "no_answer",
+        "correct": null,
+        "seconds": 0.95,
+        "error_type": "ProviderError"
+      },
+      {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "case": "synthesis",
+        "outcome": "answered",
+        "correct": true,
+        "seconds": 5.77,
+        "error_type": null
+      },
+      {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "case": "audit-catches",
+        "outcome": "answered",
+        "correct": true,
+        "seconds": 6.1,
+        "error_type": null
+      },
+      {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "case": "audit-passes",
+        "outcome": "answered",
+        "correct": true,
+        "seconds": 1.49,
+        "error_type": null
+      }
+    ],
+    "models": [
+      {
+        "model": "liquid/lfm-2.5-2.6b:free",
+        "calls": 1,
+        "no_answer": 1,
+        "errors": {
+          "ProviderError": 1
+        },
+        "answered": 0,
+        "correct": 0,
+        "median_seconds": null,
+        "slowest_seconds": null,
+        "verdict": "not_judged",
+        "why": "no_answers",
+        "placing": "kept"
+      },
+      {
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "calls": 1,
+        "no_answer": 1,
+        "errors": {
+          "ProviderError": 1
+        },
+        "answered": 0,
+        "correct": 0,
+        "median_seconds": null,
+        "slowest_seconds": null,
+        "verdict": "not_judged",
+        "why": "no_answers",
+        "placing": "dropped"
+      },
+      {
+        "model": "xingchen-agi/xing4.0-29b-a4b:free",
+        "calls": 1,
+        "no_answer": 1,
+        "errors": {
+          "ProviderError": 1
+        },
+        "answered": 0,
+        "correct": 0,
+        "median_seconds": null,
+        "slowest_seconds": null,
+        "verdict": "not_judged",
+        "why": "no_answers",
+        "placing": null
+      },
+      {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "calls": 3,
+        "no_answer": 0,
+        "errors": {},
+        "answered": 3,
+        "correct": 3,
+        "median_seconds": 5.8,
+        "slowest_seconds": 6.1,
+        "verdict": "passed",
+        "why": "all_right",
+        "placing": "added"
+      }
+    ],
+    "chain_before": [
+      "liquid/lfm-2.5-2.6b:free",
+      "nvidia/nemotron-3-super-120b-a12b:free"
+    ],
+    "outcome": "changed",
+    "requests": 6
+  },
+  "job": {
+    "checked": "2026-10-28T16:02:52Z",
+    "found": [
+      "dots-studio/dots-3-note-preview:free",
+      "liquid/lfm-2.5-2.6b:free",
+      "nvidia/nemotron-3.5-super-vl:free",
+      "xingchen-agi/xing4.0-29b-a4b:free"
+    ],
+    "outcome": "published"
+  },
+  "by": {
+    "repository": "nickdesjardins/autonomous-operation-marketing",
+    "commit": "4ea5957df9201d1673f6b19e11af64c0ad153907",
+    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/40692721139"
+  }
+}
