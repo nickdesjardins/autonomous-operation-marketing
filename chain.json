@@ -1,16 +1,16 @@
 {
   "version": 2,
   "fingerprint": "477805df80d0432a",
-  "tested": "2026-11-07T13:11:22Z",
+  "tested": "2026-11-11T14:30:27Z",
   "chain": [
     "liquid/lfm-2.5-2.6b:free",
     "nvidia/nemotron-3.5-super-vl:free"
   ],
   "test": {
-    "started": "2026-11-07T13:10:03Z",
+    "started": "2026-11-11T14:28:23Z",
     "found": [
+      "baidu/ernie-5.5-flash-preview:free",
       "liquid/lfm-3-1.7b:free",
-      "xingchen-agi/xing4.0-29b-a4b:free",
       "nvidia/nemotron-3.5-super-vl:free",
       "dots-studio/dots-3-note-preview:free",
       "liquid/lfm-2.5-2.6b:free"
@@ -18,11 +18,11 @@
     "tested": [
       "liquid/lfm-2.5-2.6b:free",
       "nvidia/nemotron-3.5-super-vl:free",
-      "liquid/lfm-3-1.7b:free",
-      "xingchen-agi/xing4.0-29b-a4b:free"
+      "dots-studio/dots-3-note-preview:free",
+      "baidu/ernie-5.5-flash-preview:free"
     ],
     "left_out": [
-      "dots-studio/dots-3-note-preview:free"
+      "liquid/lfm-3-1.7b:free"
     ],
     "gone": [],
     "cases": [
@@ -46,7 +46,7 @@
         "case": "synthesis",
         "outcome": "answered",
         "correct": true,
-        "seconds": 6.18,
+        "seconds": 5.53,
         "error_type": null
       },
       {
@@ -54,7 +54,7 @@
         "case": "audit-catches",
         "outcome": "answered",
         "correct": true,
-        "seconds": 12.89,
+        "seconds": 5.81,
         "error_type": null
       },
       {
@@ -62,7 +62,7 @@
         "case": "audit-passes",
         "outcome": "answered",
         "correct": true,
-        "seconds": 7.82,
+        "seconds": 3.98,
         "error_type": null
       },
       {
@@ -70,7 +70,7 @@
         "case": "synthesis",
         "outcome": "answered",
         "correct": true,
-        "seconds": 30.16,
+        "seconds": 14.43,
         "error_type": null
       },
       {
@@ -78,7 +78,7 @@
         "case": "audit-catches",
         "outcome": "answered",
         "correct": true,
-        "seconds": 7.06,
+        "seconds": 6.06,
         "error_type": null
       },
       {
@@ -86,23 +86,23 @@
         "case": "audit-passes",
         "outcome": "answered",
         "correct": true,
-        "seconds": 0.93,
+        "seconds": 14.66,
         "error_type": null
       },
       {
-        "model": "liquid/lfm-3-1.7b:free",
+        "model": "dots-studio/dots-3-note-preview:free",
         "case": "synthesis",
         "outcome": "no_answer",
         "correct": null,
-        "seconds": 0.27,
+        "seconds": 51.81,
         "error_type": "ProviderError"
       },
       {
-        "model": "xingchen-agi/xing4.0-29b-a4b:free",
+        "model": "baidu/ernie-5.5-flash-preview:free",
         "case": "synthesis",
         "outcome": "no_answer",
         "correct": null,
-        "seconds": 2.52,
+        "seconds": 18.7,
         "error_type": "ProviderError"
       }
     ],
@@ -114,8 +114,8 @@
         "errors": {},
         "answered": 3,
         "correct": 3,
-        "median_seconds": 7.8,
-        "slowest_seconds": 12.9,
+        "median_seconds": 5.5,
+        "slowest_seconds": 5.8,
         "verdict": "passed",
         "why": "all_right",
         "placing": "kept"
@@ -127,14 +127,14 @@
         "errors": {},
         "answered": 3,
         "correct": 3,
-        "median_seconds": 7.1,
-        "slowest_seconds": 30.2,
+        "median_seconds": 14.4,
+        "slowest_seconds": 14.7,
         "verdict": "passed",
         "why": "all_right",
         "placing": "kept"
       },
       {
-        "model": "liquid/lfm-3-1.7b:free",
+        "model": "dots-studio/dots-3-note-preview:free",
         "calls": 1,
         "no_answer": 1,
         "errors": {
@@ -149,7 +149,7 @@
         "placing": null
       },
       {
-        "model": "xingchen-agi/xing4.0-29b-a4b:free",
+        "model": "baidu/ernie-5.5-flash-preview:free",
         "calls": 1,
         "no_answer": 1,
         "errors": {
@@ -172,19 +172,19 @@
     "requests": 8
   },
   "job": {
-    "checked": "2026-11-07T13:11:22Z",
+    "checked": "2026-11-11T14:30:27Z",
     "found": [
+      "baidu/ernie-5.5-flash-preview:free",
       "dots-studio/dots-3-note-preview:free",
       "liquid/lfm-2.5-2.6b:free",
       "liquid/lfm-3-1.7b:free",
-      "nvidia/nemotron-3.5-super-vl:free",
-      "xingchen-agi/xing4.0-29b-a4b:free"
+      "nvidia/nemotron-3.5-super-vl:free"
     ],
     "outcome": "published"
   },
   "by": {
     "repository": "nickdesjardins/autonomous-operation-marketing",
     "commit": "4ea5957df9201d1673f6b19e11af64c0ad153907",
-    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/42375678545"
+    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/43038734433"
   }
 }
