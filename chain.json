@@ -1,14 +1,15 @@
 {
   "version": 2,
   "fingerprint": "477805df80d0432a",
-  "tested": "2026-11-13T14:41:10Z",
+  "tested": "2026-11-14T13:38:24Z",
   "chain": [
     "nvidia/nemotron-3.5-super-vl:free",
     "particle-ai/particle-1:free"
   ],
   "test": {
-    "started": "2026-11-13T14:39:37Z",
+    "started": "2026-11-14T13:36:39Z",
     "found": [
+      "inclusionai/ling-3.2-flash:free",
       "baidu/ernie-5.5-flash-preview:free",
       "liquid/lfm-3-1.7b:free",
       "particle-ai/particle-1:free",
@@ -16,18 +17,16 @@
       "dots-studio/dots-3-note-preview:free"
     ],
     "tested": [
-      "liquid/lfm-2.5-2.6b:free",
       "nvidia/nemotron-3.5-super-vl:free",
-      "liquid/lfm-3-1.7b:free",
-      "particle-ai/particle-1:free"
-    ],
-    "left_out": [
+      "particle-ai/particle-1:free",
       "baidu/ernie-5.5-flash-preview:free",
       "dots-studio/dots-3-note-preview:free"
     ],
-    "gone": [
-      "liquid/lfm-2.5-2.6b:free"
+    "left_out": [
+      "inclusionai/ling-3.2-flash:free",
+      "liquid/lfm-3-1.7b:free"
     ],
+    "gone": [],
     "cases": [
       {
         "id": "synthesis",
@@ -45,19 +44,11 @@
     "timeout_seconds": 60.0,
     "calls": [
       {
-        "model": "liquid/lfm-2.5-2.6b:free",
-        "case": "synthesis",
-        "outcome": "no_answer",
-        "correct": null,
-        "seconds": 0.13,
-        "error_type": "ProviderError"
-      },
-      {
         "model": "nvidia/nemotron-3.5-super-vl:free",
         "case": "synthesis",
         "outcome": "answered",
         "correct": true,
-        "seconds": 17.66,
+        "seconds": 5.56,
         "error_type": null
       },
       {
@@ -65,7 +56,7 @@
         "case": "audit-catches",
         "outcome": "answered",
         "correct": true,
-        "seconds": 5.37,
+        "seconds": 4.27,
         "error_type": null
       },
       {
@@ -73,23 +64,15 @@
         "case": "audit-passes",
         "outcome": "answered",
         "correct": true,
-        "seconds": 1.46,
+        "seconds": 1.34,
         "error_type": null
-      },
-      {
-        "model": "liquid/lfm-3-1.7b:free",
-        "case": "synthesis",
-        "outcome": "no_answer",
-        "correct": null,
-        "seconds": 23.78,
-        "error_type": "ProviderError"
       },
       {
         "model": "particle-ai/particle-1:free",
         "case": "synthesis",
         "outcome": "answered",
         "correct": true,
-        "seconds": 22.03,
+        "seconds": 5.34,
         "error_type": null
       },
       {
@@ -97,7 +80,7 @@
         "case": "audit-catches",
         "outcome": "answered",
         "correct": true,
-        "seconds": 5.07,
+        "seconds": 8.07,
         "error_type": null
       },
       {
@@ -105,26 +88,51 @@
         "case": "audit-passes",
         "outcome": "answered",
         "correct": true,
-        "seconds": 5.15,
+        "seconds": 0.93,
         "error_type": null
+      },
+      {
+        "model": "baidu/ernie-5.5-flash-preview:free",
+        "case": "synthesis",
+        "outcome": "answered",
+        "correct": true,
+        "seconds": 8.54,
+        "error_type": null
+      },
+      {
+        "model": "baidu/ernie-5.5-flash-preview:free",
+        "case": "audit-catches",
+        "outcome": "no_answer",
+        "correct": null,
+        "seconds": 15.31,
+        "error_type": "ProviderError"
+      },
+      {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "case": "synthesis",
+        "outcome": "answered",
+        "correct": true,
+        "seconds": 13.77,
+        "error_type": null
+      },
+      {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "case": "audit-catches",
+        "outcome": "answered",
+        "correct": true,
+        "seconds": 13.5,
+        "error_type": null
+      },
+      {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "case": "audit-passes",
+        "outcome": "no_answer",
+        "correct": null,
+        "seconds": 15.47,
+        "error_type": "ProviderError"
       }
     ],
     "models": [
-      {
-        "model": "liquid/lfm-2.5-2.6b:free",
-        "calls": 1,
-        "no_answer": 1,
-        "errors": {
-          "ProviderError": 1
-        },
-        "answered": 0,
-        "correct": 0,
-        "median_seconds": null,
-        "slowest_seconds": null,
-        "verdict": "not_judged",
-        "why": "no_answers",
-        "placing": "dropped"
-      },
       {
         "model": "nvidia/nemotron-3.5-super-vl:free",
         "calls": 3,
@@ -132,53 +140,69 @@
         "errors": {},
         "answered": 3,
         "correct": 3,
-        "median_seconds": 5.4,
-        "slowest_seconds": 17.7,
+        "median_seconds": 4.3,
+        "slowest_seconds": 5.6,
         "verdict": "passed",
         "why": "all_right",
         "placing": "kept"
       },
       {
-        "model": "liquid/lfm-3-1.7b:free",
-        "calls": 1,
-        "no_answer": 1,
-        "errors": {
-          "ProviderError": 1
-        },
-        "answered": 0,
-        "correct": 0,
-        "median_seconds": null,
-        "slowest_seconds": null,
-        "verdict": "not_judged",
-        "why": "no_answers",
-        "placing": null
-      },
-      {
         "model": "particle-ai/particle-1:free",
         "calls": 3,
         "no_answer": 0,
         "errors": {},
         "answered": 3,
         "correct": 3,
-        "median_seconds": 5.2,
-        "slowest_seconds": 22.0,
+        "median_seconds": 5.3,
+        "slowest_seconds": 8.1,
         "verdict": "passed",
         "why": "all_right",
-        "placing": "added"
+        "placing": "kept"
+      },
+      {
+        "model": "baidu/ernie-5.5-flash-preview:free",
+        "calls": 2,
+        "no_answer": 1,
+        "errors": {
+          "ProviderError": 1
+        },
+        "answered": 1,
+        "correct": 1,
+        "median_seconds": 8.5,
+        "slowest_seconds": 8.5,
+        "verdict": "not_judged",
+        "why": "unanswered",
+        "placing": null
+      },
+      {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "calls": 3,
+        "no_answer": 1,
+        "errors": {
+          "ProviderError": 1
+        },
+        "answered": 2,
+        "correct": 2,
+        "median_seconds": 13.6,
+        "slowest_seconds": 13.8,
+        "verdict": "not_judged",
+        "why": "unanswered",
+        "placing": null
       }
     ],
     "chain_before": [
-      "liquid/lfm-2.5-2.6b:free",
-      "nvidia/nemotron-3.5-super-vl:free"
+      "nvidia/nemotron-3.5-super-vl:free",
+      "particle-ai/particle-1:free"
     ],
-    "outcome": "changed",
-    "requests": 8
+    "outcome": "unchanged",
+    "requests": 11
   },
   "job": {
-    "checked": "2026-11-13T14:41:10Z",
+    "checked": "2026-11-14T13:38:24Z",
     "found": [
       "baidu/ernie-5.5-flash-preview:free",
       "dots-studio/dots-3-note-preview:free",
+      "inclusionai/ling-3.2-flash:free",
       "liquid/lfm-3-1.7b:free",
       "nvidia/nemotron-3.5-super-vl:free",
       "particle-ai/particle-1:free"
@@ -188,6 +212,6 @@
   "by": {
     "repository": "nickdesjardins/autonomous-operation-marketing",
     "commit": "4ea5957df9201d1673f6b19e11af64c0ad153907",
-    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/43444765513"
+    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/43600609364"
   }
 }
