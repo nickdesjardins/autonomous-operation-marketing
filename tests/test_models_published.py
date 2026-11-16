@@ -798,9 +798,82 @@ def test_the_job_publishes_and_fails_when_a_model_of_the_chain_failed_the_test(
     code, written = run_job(tmp_path, make_settings())
     assert code == 1 and written["chain"] == [FIRST, SECOND, NEW]
     assert (
-        f"Failing this run on purpose: {FIRST} failed this test and keeps its place"
+        f"Failing this run on purpose: Unresolved quality failure in the published chain: {FIRST}"
         in capsys.readouterr().out
     )
+
+
+@pytest.mark.parametrize("next_check", ["cooldown", "catalogue", "quota", "all429", "mixed"])
+def test_quality_failures_survive_inconclusive_checks(
+    job: Job, tmp_path: Path, next_check: str
+) -> None:
+    settings = make_settings()
+    job.listed = [FIRST, SECOND]
+    job.script = {FIRST: "wrong"}
+    code, previous = run_job(tmp_path / "bad", settings)
+    assert code == 1 and previous["quality_failures"] == [FIRST]
+    previous["tested"] = stamp(datetime.now(UTC) - timedelta(days=1))
+    if next_check == "catalogue":
+        job.listed = TimeoutError("catalogue unavailable")
+    elif next_check == "quota":
+        job.allowance = Allowance(995, 1000, 5)
+    elif next_check == "all429":
+        job.script = {FIRST: "lost", SECOND: "lost"}
+    elif next_check == "mixed":
+        job.script = {FIRST: "lost"}
+    job.log.clear()
+    code, written = run_job(tmp_path / "next", settings, previous, force=next_check != "cooldown")
+    assert code == 1
+    if next_check in ("all429", "mixed"):
+        assert written["quality_failures"] == [FIRST] and written["chain"] == previous["chain"]
+        if next_check == "all429":
+            assert written["tested"] == previous["tested"]
+        assert parse(
+            json.dumps(written), fingerprint(settings), datetime.now(UTC)
+        ).quality_failures == (FIRST,)
+        assert run_job(tmp_path / "cooldown", settings, written)[0] == 1
+    else:
+        assert written is None and job.log == []
+
+
+@pytest.mark.parametrize("resolution", ["passing", "removed"])
+def test_quality_failure_clears_only_with_new_evidence_or_a_changed_chain(
+    job: Job, tmp_path: Path, resolution: str
+) -> None:
+    settings = make_settings()
+    job.listed = [FIRST, SECOND]
+    job.script = {FIRST: "wrong"}
+    _, previous = run_job(tmp_path / "bad", settings)
+    # Pre-upgrade files carry the failure in their saved calls, without the new field.
+    previous.pop("quality_failures")
+    assert run_job(tmp_path / "legacy", settings, previous)[0] == 1
+    job.script = {} if resolution == "passing" else {FIRST: "lost"}
+    if resolution == "removed":
+        job.listed, job.gone = [SECOND], {FIRST}
+        job.script = {FIRST: "lost", SECOND: "lost"}
+        code, retained = run_job(tmp_path / "inconclusive-removal", settings, previous, force=True)
+        assert code == 1 and FIRST in retained["chain"]
+        assert retained["quality_failures"] == [FIRST] and retained["tested"] == previous["tested"]
+        previous = retained
+        job.script = {FIRST: "lost"}
+    code, written = run_job(tmp_path / "fixed", settings, previous, force=True)
+    assert code == 0 and written["quality_failures"] == []
+    assert (FIRST in written["chain"]) is (resolution == "passing")
+    assert run_job(tmp_path / "next", settings, written)[0] == 0
+
+
+def test_a_new_quality_failure_is_saved_even_when_nothing_can_be_confirmed(
+    job: Job, tmp_path: Path
+) -> None:
+    settings = make_settings()
+    job.listed = [FIRST, SECOND]
+    _, previous = run_job(tmp_path / "good", settings)
+    previous["tested"] = stamp(datetime.now(UTC) - timedelta(days=1))
+    job.script = {FIRST: "wrong", SECOND: "lost"}
+    code, written = run_job(tmp_path / "bad", settings, previous, force=True)
+    assert code == 1 and written["quality_failures"] == [FIRST]
+    assert written["tested"] == previous["tested"] and written["chain"] == previous["chain"]
+    assert run_job(tmp_path / "next", settings, written)[0] == 1
 
 
 def test_the_job_leaves_the_reserve_for_visitors_and_tests_although_the_count_is_unknown(

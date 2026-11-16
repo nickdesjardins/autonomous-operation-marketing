@@ -387,7 +387,7 @@ while it runs, what the last one found) and its button starts a test through
 **The published chain** (`app/models/published.py`). A service that nobody uses tests nothing,
 and on a free host it forgets what it knew at every sleep. So a scheduled job on GitHub
 (`.github/workflows/model-check.yml`, shown as "Model check") runs `python -m
-app.models.published` every day at 06:17 UTC, on a push to `main` that changes a file the test
+app.models.published` every day at 05:47 UTC, on a push to `main` that changes a file the test
 is made of, and by hand. Deciding whether a test is due costs nothing and needs no key: one is
 due when nothing usable is published, when the last test is six and a half days old, when the
 last test could confirm nothing and 20 hours have passed, when OpenRouter's list of free models

@@ -106,6 +106,8 @@ class Published:
     job: Mapping[str, Any] = field(default_factory=dict)
     #: The address of the job's run that wrote the file, under "run". For the log only.
     by: Mapping[str, str] = field(default_factory=dict)
+    #: Quality failures still belonging to the published chain, across inconclusive attempts.
+    quality_failures: tuple[str, ...] = ()
 
 
 def moment(written: object) -> datetime | None:
@@ -303,10 +305,18 @@ def parse(text: str, expected: str, now: datetime) -> Published:
         checked = moment(job.get("checked"))
         run = by.get("run")
         outcome = job.get("outcome")
+        record = _clean_record(data.get("test"), chain, tested)
+        failures = data.get("quality_failures")
+        if not isinstance(failures, list):
+            failures = [
+                row["model"]
+                for row in (record or {}).get("models", ())
+                if row["verdict"] == "failed"
+            ]
         return Published(
             chain=tuple(chain),
             tested=tested,
-            record=_clean_record(data.get("test"), chain, tested),
+            record=record,
             job={
                 # A moment ahead of now would put the next test off for as long.
                 "checked": job["checked"] if checked is not None and checked <= soon else written,
@@ -315,6 +325,7 @@ def parse(text: str, expected: str, now: datetime) -> Published:
                 "outcome": outcome if outcome in ("published", "nothing") else "published",
             },
             by={"run": run} if isinstance(run, str) and _RUN_ADDRESS.fullmatch(run) else {},
+            quality_failures=tuple(model for model in _ids(failures) if model in chain),
         )
     except Unusable:
         raise
@@ -460,6 +471,27 @@ def _run_address() -> dict[str, str]:
     }
 
 
+def _quality_failures(
+    previous: Published | None, chain: Sequence[str], rows: Sequence[Mapping[str, Any]] = ()
+) -> list[str]:
+    """Only a correct retest or leaving the published chain resolves a quality failure."""
+    failed = set(previous.quality_failures if previous else ())
+    for row in rows:
+        if row["verdict"] == "failed":
+            failed.add(row["model"])
+        elif row["verdict"] in ("passed", "slow"):
+            failed.discard(row["model"])
+    return [model for model in chain if model in failed]
+
+
+def _quality_failure(models: Sequence[str]) -> int:
+    return _fail(
+        f"Unresolved quality failure in the published chain: {', '.join(models)}. "
+        "A passing retest or removal from the chain is required; an inconclusive check "
+        "does not clear a wrong answer. Measure again and update DEFAULT_MODEL_CHAIN if needed."
+    )
+
+
 async def _job(
     previous_path: Path, out_path: Path, forced: bool, settings: config.Settings | None = None
 ) -> int:
@@ -487,6 +519,12 @@ async def _job(
     age = (now - previous.tested).days if previous else None
     stale = previous is None or (age is not None and age >= ALARM_AFTER_DAYS)
     no_list = "no tested chain younger than three weeks is published, so services are on their own."
+    outstanding = _quality_failures(previous, previous.chain if previous else default)
+
+    def deferred() -> int:
+        if outstanding:
+            return _quality_failure(outstanding)
+        return _fail(no_list) if stale else 0
 
     try:
         listed: list[str] | None = catalogue.free_models(base_url)
@@ -511,7 +549,7 @@ async def _job(
     is_due, why = due(previous, problem, listed, now, forced)
     if not is_due:
         _say(f"No test today: {why}.")
-        return _fail(no_list) if stale else 0
+        return deferred()
     if not settings.openrouter_configured:
         _warn(
             f"A test is due ({why}), but this job has no key, so nothing was tested and "
@@ -524,9 +562,9 @@ async def _job(
                 "recent tested chain or the built-in default is withdrawn. Add the secret "
                 "in Settings, Secrets and variables, Actions, then rerun Model check."
             )
-        return 0
+        return deferred()
     if listed is None:
-        return _fail(no_list) if stale else 0
+        return deferred()
 
     chain = list(previous.chain) if previous else default
     gone = [
@@ -546,7 +584,7 @@ async def _job(
             f"A test is due ({why}), but too few free requests are left today for it and for "
             "visitors, so nothing was tested."
         )
-        return _fail(no_list) if stale else 0
+        return deferred()
 
     _say(f"Testing the free models: {why}. Models: {', '.join(tested)}.")
     record = testing.new_record(
@@ -577,6 +615,9 @@ async def _job(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     if rules.seen_working(record["models"], record["chain"]):
         document = build(record, expected, datetime.now(UTC), _run_address())
+        document["quality_failures"] = _quality_failures(
+            previous, document["chain"], record["models"]
+        )
         out_path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8", newline="\n")
         if previous is None:
             was = "Nothing was published before."
@@ -588,19 +629,11 @@ async def _job(
             f"Published chain: {', '.join(document['chain'])} "
             f"({record['requests']} free requests). {was}"
         )
-        wrong = [
-            row["model"]
-            for row in record["models"]
-            if row["model"] in document["chain"] and row["verdict"] == "failed"
-        ]
+        wrong = document["quality_failures"]
         if wrong:
             # Published all the same: services need the date, and a test repairs a chain, it
             # never reorders one. The owner is the one who can.
-            return _fail(
-                f"{', '.join(wrong)} failed this test and keeps its place in the chain, because "
-                "a test never reorders a chain. Measure again and change DEFAULT_MODEL_CHAIN "
-                "in app/config.py."
-            )
+            return _quality_failure(wrong)
         return 0
 
     _warn(
@@ -611,12 +644,17 @@ async def _job(
         # Remember that a test ran and what was listed, so that the same test is not repeated
         # every day; the chain and its date stay as they were.
         document = json.loads(previous_text)
+        document["quality_failures"] = _quality_failures(
+            previous, document["chain"], record["models"]
+        )
         document["job"] = {
             "checked": datetime.now(UTC).strftime(STAMP),
             "found": sorted(listed),
             "outcome": "nothing",
         }
         out_path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8", newline="\n")
+        if document["quality_failures"]:
+            return _quality_failure(document["quality_failures"])
     silent = [row["model"] for row in record["models"] if not row["answered"]]
     if all(model in gone and model in silent for model in chain):
         # Two sources agree about every model of the chain, so this is not the weather.

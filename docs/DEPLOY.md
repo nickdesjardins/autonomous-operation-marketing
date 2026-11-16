@@ -230,7 +230,7 @@ minutes. `render.yaml` already allows the page's origin
 ## Step 6: give the scheduled model test its key (3 minutes)
 
 `.github/workflows/model-check.yml` ("Model check") runs `python -m app.models.published` every
-day at 06:17 UTC and tests the free models when a test is due (about once a week, or when
+day at 05:47 UTC and tests the free models when a test is due (about once a week, or when
 OpenRouter's list changed): the three cases of `app/models/cases.py` per candidate, 12 free
 requests at the very most. It publishes the chain it confirmed to `chain.json` on the branch
 `tested-models`, and every service in automatic mode reads that file at start-up

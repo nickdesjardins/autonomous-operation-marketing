@@ -46,8 +46,8 @@ name: Model check
 
 on:
   schedule:
-    # Daily at 06:17 UTC. Off the hour on purpose: GitHub delays jobs queued at :00.
-    - cron: "17 6 * * *"
+    # Daily at 05:47 UTC, staggered from the other portfolio projects sharing the allowance.
+    - cron: "47 5 * * *"
   workflow_dispatch:
     inputs:
       force:
