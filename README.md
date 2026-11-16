@@ -309,17 +309,21 @@ automatic` or `Model choice: pinned`), and `/health` reports it as `llm.mode`: `
 `pinned`, `no_key` (no OpenRouter key, so nothing is looked after), `not_openrouter` (another
 base URL has no catalogue to ask), or `fixed` for the other providers.
 
-**The default chain, in words.** First `liquid/lfm-2.5-2.6b:free` (Liquid), then
-`nvidia/nemotron-3-super-120b-a12b:free` (NVIDIA). The two sit on different upstream providers,
-so one outage cannot take out both. It is a dated snapshot, not a ranking: `DEFAULT_MEASURED_ON`
-in `app/models/testing.py` records 15 October 2026 as the day it was measured by hand through
-this service's own cases, three passes of the three cases per model, with every call saved under
-`benchmarks/2026-10-15/` and the grading explained in `benchmarks/README.md`. The first place
-goes to the model with the fewest wrong answers. To measure again: `scripts/openrouter_smoke.py`
+**The default chain, in words.** First `nvidia/nemotron-3.5-super-vl:free` (NVIDIA), then
+`particle-ai/particle-1:free` (Particle). Reviewed on 16 November 2026, this preserves the
+working order already published by this service's own scheduled tests. NVIDIA passed all three
+saved checks (11, 13 and 14 November); Particle passed both checks that tested it (13 and 14
+November), three cases per check. `DEFAULT_MEASURED_ON` records the latest confirmation,
+14 November. The evidence and source runs are in `benchmarks/2026-11-16-default-review.json`;
+these checks do not establish which of two passing models is better. To measure again:
+`scripts/openrouter_smoke.py`
 (the catalogue's word on the chain, the day's allowance, then one synthesis and one audit of the
 planted draft: two free requests) and the model test (the *Models* section of the playground, or
 `python -m app.models.published --previous chain.json --out chain.json --force`, which writes
 the same file the scheduled job publishes).
+
+The original 15 October benchmark below describes the original defaults; its recorded answers
+remain unchanged under `benchmarks/2026-10-15/` (grading in `benchmarks/README.md`).
 
 <!-- snapshot:start -->
 | Model | Cases right | Median answer | Slowest answer | Note |
@@ -392,19 +396,24 @@ The test itself needs the repository secret `OPENROUTER_API_KEY` (only one step 
 job sees it) and spends at most 12 free requests. A second job, which runs no downloaded code,
 commits the chain it confirmed to `chain.json` on the branch `tested-models`; a third turns the
 run red when the owner has something to do, and the first job's log then ends with a line that
-begins `Failing this run on purpose:`. A service in automatic mode reads the file at start-up
-and after a failed request, from `DEFAULT_PUBLISHED_URL` (`MODEL_PUBLISHED_URL` points
+begins `Failing this run on purpose:`. The failure annotation includes the specific reason.
+A full three-model chain still tests a rotating outsider on its weekly check, within the same
+four-candidate limit; a new catalogue entry alone does not trigger extra daily tests when the
+chain has no vacancy. A service in automatic mode reads the file at start-up, hourly while
+running, and after a failed request, from `DEFAULT_PUBLISHED_URL` (`MODEL_PUBLISHED_URL` points
 elsewhere; `null` switches it off): one request, no key, no free request spent. The file is a
-claim like any other, so it is checked before it is used: at most 64 000 bytes, a version 1
+claim like any other, so it is checked before it is used: at most 64 000 bytes, a supported version
 object, a date that is not in the future, a chain of one to three different ids that all end in
 `:free`, and a fingerprint of the test that made it (the cases, their schemas and messages, the
 rules' constants, the default chain, the response format), so a fork that changes a prompt
 ignores this project's file by itself. It is taken only when its test is newer than the one
 behind the chain in use, and after a failed request not when it names the very chain that just
 failed. The branch is not `main` on purpose: a host that deploys on every push to `main` would
-restart the service at every publication. From 14 days without a publication the log says how
-old the list is; GitHub pauses scheduled workflows in a public repository after 60 days without
-activity, and the Actions tab's "Enable workflow" brings it back.
+restart the service at every publication. Inconclusive checks retain the last confirmed chain
+and its confirmation date. From 14 days without confirmation the log says how old the list is;
+at 21 days the job fails even if a recent retry means another test is not due yet. A missing key
+also fails when no usable confirmed list exists. GitHub pauses scheduled workflows in a public
+repository after 60 days without activity, and the Actions tab's "Enable workflow" brings it back.
 
 **How the default was chosen, and how to change it.** By hand, from measurements, by the
 ordering rule `rank()` in `app/models/rules.py` applies to a test's rows: (1) leave out a model
@@ -543,7 +552,7 @@ curl -s http://localhost:8000/health | jq
   "llm": {
     "provider": "openrouter",
     "configured": true,
-    "models": ["liquid/lfm-2.5-2.6b:free", "nvidia/nemotron-3-super-120b-a12b:free"],
+    "models": ["nvidia/nemotron-3.5-super-vl:free", "particle-ai/particle-1:free"],
     "mode": "automatic"
   },
   "webhook": {"target": "dry_run", "configured": true, "url_host": null}
@@ -1000,6 +1009,8 @@ What is covered:
   by this service's rules), when a test is due, the job's exit codes and the lines that begin
   `Failing this run on purpose:`, and the workflow file itself (the paths a push starts it for,
   the two-job trust split).
+* `tests/test_model_default_review.py` - the current defaults pass the saved project-specific
+  checks, and their confirmation date comes from those checks rather than the review date.
 * `tests/test_readme.py` - holds this document to the code it quotes: the status table above
   names every `STATUS_` constant in `app/graph/state.py` and nothing else, the default chain is
   written in the order `app/config.py` ships, the defaults in the configuration table are the

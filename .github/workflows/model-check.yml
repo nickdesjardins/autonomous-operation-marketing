@@ -94,6 +94,7 @@ jobs:
     outputs:
       file: ${{ steps.test.outputs.file }}
       status: ${{ steps.test.outputs.status }}
+      failure_reason: ${{ steps.test.outputs.failure_reason }}
     steps:
       # The token this job gets can only read (see "permissions" above), so it does no harm
       # that the checkout keeps it for the fetch two steps down.
@@ -253,7 +254,13 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: The owner has something to do
+        env:
+          FAILURE_REASON: ${{ needs.test.outputs.failure_reason }}
         run: |
+          if [ -n "$FAILURE_REASON" ]; then
+            printf '%s\n' "::error title=Model check failed::$FAILURE_REASON"
+            exit 1
+          fi
           echo "The job 'Test the free models, if a test is due' did not end well."
           echo "Open it and read the end of its step 'Decide, test, and write the file to publish'."
           echo "A line that begins 'Failing this run on purpose:' says what you can do."

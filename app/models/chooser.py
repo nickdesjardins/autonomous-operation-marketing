@@ -63,6 +63,8 @@ LOOK_PAUSE_SECONDS = 60
 #: After failed requests the published list is read at most this often: the address hands out
 #: the same copy for five minutes.
 PUBLISHED_PAUSE_SECONDS = 5 * 60
+#: A healthy long-lived service still adopts published repairs without waiting for a failure.
+PUBLISHED_REFRESH_SECONDS = 60 * 60
 #: How long the key-less reads at startup may take, together, before the service goes on
 #: without them. The visitor is already waiting for the host then, so this may be generous.
 READ_SECONDS = 8.0
@@ -124,6 +126,7 @@ chain_factory: testing.ChainFactory | None = None
 _settings: Settings | None = None  #: the settings the service runs with (see configure())
 _test: dict[str, Any] | None = None  #: the test that is running, as the page is shown it
 _tasks: set[asyncio.Task[Any]] = set()  #: keeps background work alive until it is done
+_refresh_task: asyncio.Task[None] | None = None  #: metadata-only periodic maintenance
 _looking = False  #: a failed request is being looked into
 _starting = False  #: a test is asking its free questions (the list, the allowance) first
 _looked_at = -math.inf  #: when the last look began (monotonic)
@@ -144,6 +147,10 @@ def reset() -> None:
     """Forget everything this process remembers (between tests)."""
     global _settings, _test, _looking, _looked_at, _test_ended_at, _published, _published_record
     global _published_read_at, _published_answered, _refusal, _awake_since, _look_note, _starting
+    global _refresh_task
+    if _refresh_task is not None and not _refresh_task.done():
+        _refresh_task.cancel()
+    _refresh_task = None
     _settings, _test, _looking, _looked_at, _test_ended_at = None, None, False, -math.inf, -math.inf
     _look_note, _starting = None, False
     _failed_here.clear()
@@ -288,7 +295,7 @@ def log_mode(settings: Settings) -> None:
 # ---------------------------------------------------------------------------
 
 
-async def read_published(settings: Settings, at_startup: bool) -> bool:
+async def read_published(settings: Settings, at_startup: bool, *, refresh: bool = False) -> bool:
     """Read the chain the scheduled test published, and use it if it is newer.
 
     Returns True when the chain in use changed. Calls no model, sends no key and never raises.
@@ -359,7 +366,7 @@ async def read_published(settings: Settings, at_startup: bool) -> bool:
                 runs,
             )
     in_use = settings.model_chain
-    if _test is not None:
+    if _test is not None or (refresh and (_looking or _starting)):
         return False  # one writer at a time: a running test has the chain
     if found.tested <= tested_at():
         _published = {"state": "older", "tested": tested}
@@ -370,13 +377,13 @@ async def read_published(settings: Settings, at_startup: bool) -> bool:
             _stamp(tested_at()),
         )
         return False
-    if not at_startup and list(found.chain) == in_use:
+    if not at_startup and not refresh and list(found.chain) == in_use:
         # The very chain that has just failed here. A newer date does not make it answer.
         _published = {"state": "same", "tested": tested}
         return False
     # At startup this is the ordinary course of things on a host that forgets its disk, so it
     # is no warning there.
-    level = logging.INFO if at_startup else logging.WARNING
+    level = logging.INFO if at_startup or refresh else logging.WARNING
     _use(
         settings, found.chain, "published", found.tested, {"code": "published", "models": []}, level
     )
@@ -430,6 +437,7 @@ async def at_startup(settings: Settings) -> None:
     whatever a published file contains, and nothing here takes longer than
     :data:`READ_SECONDS`.
     """
+    global _refresh_task
     configure(settings)
     try:
         if mode(settings) != "automatic":
@@ -441,6 +449,16 @@ async def at_startup(settings: Settings) -> None:
         )
     except Exception:  # noqa: BLE001 - a read must never stop startup
         logger.exception("The published list could not be looked at. Starting without it.")
+    if settings.model_published_url and (_refresh_task is None or _refresh_task.done()):
+        _refresh_task = asyncio.create_task(_refresh_published(settings))
+
+
+async def _refresh_published(settings: Settings) -> None:
+    """Refresh public metadata hourly, without model calls or competing with an active repair."""
+    while True:
+        await asyncio.sleep(PUBLISHED_REFRESH_SECONDS)
+        if mode(settings) == "automatic" and not (_test is not None or _looking or _starting):
+            await read_published(settings, at_startup=False, refresh=True)
 
 
 # ---------------------------------------------------------------------------
@@ -915,7 +933,11 @@ def _finish(settings: Settings, record: dict[str, Any]) -> None:
 
 async def stop() -> None:
     """Cancel what is still running in the background (the service is shutting down)."""
+    global _refresh_task
     tasks = list(_tasks)
+    if _refresh_task is not None:
+        tasks.append(_refresh_task)
+        _refresh_task = None
     for task in tasks:
         task.cancel()
     await asyncio.gather(*tasks, return_exceptions=True)

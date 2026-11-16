@@ -8,6 +8,7 @@ a read of two files; nothing calls a model or the network.
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -46,11 +47,19 @@ def test_default_chain_is_written_in_the_shipped_order() -> None:
     text = section("## Model selection: free models and the chain that repairs itself")
     words = re.search(r"\*\*The default chain, in words\.\*\* First `([^`]+)`[^`]*`([^`]+)`", text)
     assert words and [words.group(1), words.group(2)] == chain
-    snapshot = text[text.index("<!-- snapshot:start -->") : text.index("<!-- snapshot:end -->")]
-    assert re.findall(r"^\| `([^`]+)` \|", snapshot, re.MULTILINE)[: len(chain)] == chain
     # The /health example lists the chain in use, which is the default on a fresh service.
     health = re.search(r'"models": \[([^\]]+)\]', section("### Health"))
     assert health and re.findall(r'"([^"]+)"', health.group(1)) == chain
+
+
+def test_the_historical_snapshot_keeps_its_original_models() -> None:
+    text = section("## Model selection: free models and the chain that repairs itself")
+    snapshot = text[text.index("<!-- snapshot:start -->") : text.index("<!-- snapshot:end -->")]
+    recorded = json.loads((ROOT / "benchmarks/2026-10-15/summary.json").read_text(encoding="utf-8"))
+    assert set(re.findall(r"^\| `([^`]+)` \|", snapshot, re.MULTILINE)) == {
+        row["model"] for row in recorded["models"]
+    }
+    assert "original 15 October benchmark" in text
 
 
 def _same(written: str, default: object) -> bool:

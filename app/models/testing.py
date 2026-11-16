@@ -48,12 +48,12 @@ logger = logging.getLogger(__name__)
 
 STAMP = "%Y-%m-%dT%H:%M:%SZ"  #: how a moment is written for the page and in files (UTC)
 
-#: The day the built-in default chain was measured by hand (``app/config.py``). A published
+#: The latest saved confirmation supporting the reviewed defaults (``app/config.py``). A published
 #: list tested after that day began is newer than the default: a list made before the default
 #: was pushed carries another fingerprint (the default chain is part of it) and is never
 #: adopted, so the start of the day is the safe moment, and a job that runs on the day of the
 #: push publishes a list the service takes up.
-DEFAULT_MEASURED_ON = "2026-10-15"
+DEFAULT_MEASURED_ON = "2026-11-14"
 
 #: Who started a test, why, and how it ended. The page has words for every code.
 STARTERS = ("failure", "page", "schedule")

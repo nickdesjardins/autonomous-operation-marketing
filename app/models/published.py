@@ -435,6 +435,12 @@ def _fail(why: str) -> int:
     Failing the run is how the owner gets told: GitHub emails about failed scheduled runs.
     """
     _say(f"Failing this run on purpose: {why}")
+    escaped = why.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print(f"::error title=Model check failed::{escaped}")
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as out:
+            out.write(f"failure_reason={escaped}\n")
     return 1
 
 
@@ -505,17 +511,18 @@ async def _job(
     is_due, why = due(previous, problem, listed, now, forced)
     if not is_due:
         _say(f"No test today: {why}.")
-        return 0
+        return _fail(no_list) if stale else 0
     if not settings.openrouter_configured:
         _warn(
             f"A test is due ({why}), but this job has no key, so nothing was tested and "
             "nothing was published. To let it test: add a repository secret named "
             "OPENROUTER_API_KEY (Settings, Secrets and variables, Actions)."
         )
-        if default_gone or (previous is not None and stale):
+        if default_gone or stale:
             return _fail(
-                "without a published list a service starts from the built-in default, and "
-                "that default or the list is out of date."
+                "OPENROUTER_API_KEY is missing from the repository secrets, and there is no "
+                "recent tested chain or the built-in default is withdrawn. Add the secret "
+                "in Settings, Secrets and variables, Actions, then rerun Model check."
             )
         return 0
     if listed is None:

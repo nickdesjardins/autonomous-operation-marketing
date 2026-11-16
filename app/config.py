@@ -33,14 +33,10 @@ LlmProvider = Literal["openrouter", "openai_compatible", "anthropic"]
 WebhookTarget = Literal["url", "self", "dry_run"]
 CheckpointerKind = Literal["postgres", "memory"]
 
-#: Ordered default chain of free OpenRouter models: a dated snapshot, not a ranking. Both models
-#: were measured through this service's own three cases on 15 October 2026, three passes each
-#: (benchmarks/2026-10-15, README "Model selection"): liquid/lfm-2.5-2.6b answered 9 of 9 cases
-#: right at a 9.1 s median, nvidia/nemotron-3-super-120b-a12b 8 of 9 at 9.7 s. The first place
-#: goes to the model with the fewest wrong answers; the chain moves on only when a call fails,
-#: never on a wrong answer. The two sit on different upstream providers (Liquid, NVIDIA), so one
-#: outage cannot take out both.
-DEFAULT_MODEL_CHAIN = "liquid/lfm-2.5-2.6b:free,nvidia/nemotron-3-super-120b-a12b:free"
+#: Reviewed 16 November from this service's own scheduled checks. Nvidia passed all three
+#: saved checks (11, 13 and 14 November); Particle passed both checks that tested it.
+#: Evidence: benchmarks/2026-11-16-default-review.json. October recordings remain historical.
+DEFAULT_MODEL_CHAIN = "nvidia/nemotron-3.5-super-vl:free,particle-ai/particle-1:free"
 
 #: Where this project publishes the chain its scheduled test chose: one small JSON file on a
 #: branch of its own, written by ``.github/workflows/model-check.yml``. A clone reads the same

@@ -283,6 +283,49 @@ async def test_startup_reads_a_newer_published_chain_and_uses_it(world: World) -
     assert any(url.endswith(f"/model/{NEW}") for url in world.asked) and picture["gone"] == []
 
 
+async def test_a_healthy_service_refreshes_published_metadata_and_stops_its_timer(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    checked = asyncio.Event()
+    read = chooser.read_published
+    tested = recent()
+
+    async def observed(settings: Settings, at_startup: bool, *, refresh: bool = False) -> bool:
+        changed = await read(settings, at_startup, refresh=refresh)
+        if refresh:
+            checked.set()
+        return changed
+
+    monkeypatch.setattr(chooser, "read_published", observed)
+    monkeypatch.setattr(chooser, "PUBLISHED_REFRESH_SECONDS", 0.01)
+    world.published = published_file([FIRST, SECOND], tested, world.settings)
+    await chooser.at_startup(world.settings)
+    assert world.chain == [FIRST, SECOND] and chooser._refresh_task is not None
+    world.published = published_file([SECOND, NEW], tested + timedelta(seconds=1), world.settings)
+    await asyncio.wait_for(checked.wait(), 2)
+    assert world.chain == [SECOND, NEW] and world.test_calls == []
+    timer = chooser._refresh_task
+    await chooser.stop()
+    assert timer is not None and timer.done() and chooser._refresh_task is None
+
+
+async def test_periodic_refresh_updates_confirmation_date_for_an_unchanged_chain(
+    world: World,
+) -> None:
+    tested = recent()
+    world.published = published_file([FIRST, SECOND], tested, world.settings)
+    await chooser.read_published(world.settings, at_startup=True)
+    newer = tested + timedelta(seconds=1)
+    world.published = published_file([FIRST, SECOND], newer, world.settings)
+    assert not await chooser.read_published(world.settings, at_startup=False, refresh=True)
+    assert chooser.tested_at() == newer.replace(microsecond=0)
+
+
+async def test_pinned_mode_has_no_periodic_refresh(world: World) -> None:
+    await chooser.at_startup(make_settings(openrouter_models=f"{FIRST},{SECOND}"))
+    assert chooser._refresh_task is None and world.asked == []
+
+
 @pytest.mark.parametrize(
     ("answer", "state"),
     [

@@ -3,9 +3,22 @@
 Every call that the figures in the README rest on is saved here, so they can be re-derived
 without calling a model. One folder per day of measuring.
 
+## 2026-11-16: review of the current defaults
+
+`2026-11-16-default-review.json` preserves this project's scheduled test records from 11, 13
+and 14 November, including the publishing revision and GitHub run URL. NVIDIA Nemotron 3.5
+Super VL passed all three checks; Particle 1 passed both checks that tested it. Each check
+uses this service's three cases. The defaults now follow their already published order:
+`nvidia/nemotron-3.5-super-vl:free`, then `particle-ai/particle-1:free`.
+
+The latest confirmation was 14 November (`DEFAULT_MEASURED_ON`); 16 November is the review
+date, not a new live measurement. This evidence supports replacing the retired defaults,
+without ranking the two passing models. `tests/test_model_default_review.py` rejudges the
+saved call results. The older raw-answer benchmark below remains a historical replay.
+
 ## 2026-10-15: the three free models on this project's three cases
 
-`DEFAULT_MODEL_CHAIN` in `app/config.py` is the order these measurements gave. OpenRouter listed
+The original `DEFAULT_MODEL_CHAIN` was the order these measurements gave. OpenRouter listed
 three free models with structured output that day: `liquid/lfm-2.5-2.6b:free`,
 `nvidia/nemotron-3-super-120b-a12b:free` and `dots-studio/dots-3-note-preview:free` (the last
 one announced its end for 31 December 2026).

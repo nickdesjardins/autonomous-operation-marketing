@@ -680,17 +680,65 @@ def test_the_job_starts_from_the_published_chain_and_drops_a_model_only_when_gon
     assert code == 0 and written["chain"] == [FIRST, SECOND, NEW]
 
 
-@pytest.mark.parametrize(("default_gone", "exit_code"), [(False, 0), (True, 1)])
+@pytest.mark.parametrize("default_gone", [False, True])
 def test_the_job_without_a_key_says_what_is_due_and_tests_nothing(
-    job: Job, tmp_path: Path, default_gone: bool, exit_code: int, capsys: pytest.CaptureFixture[str]
+    job: Job, tmp_path: Path, default_gone: bool, capsys: pytest.CaptureFixture[str]
 ) -> None:
     if default_gone:
         job.gone = {FIRST}
     code, written = run_job(tmp_path, make_settings(openrouter_api_key=None))
-    assert code == exit_code and written is None and job.log == []
+    assert code == 1 and written is None and job.log == []
     printed = capsys.readouterr().out
     assert "::warning::A test is due" in printed and "OPENROUTER_API_KEY" in printed
-    assert ("Failing this run on purpose" in printed) is default_gone
+    assert "Failing this run on purpose" in printed
+
+
+def test_a_stale_chain_cannot_be_hidden_by_a_recent_inconclusive_attempt(
+    job: Job, tmp_path: Path
+) -> None:
+    settings = make_settings()
+    previous = valid(
+        settings,
+        tested=stamp(datetime.now(UTC) - timedelta(days=22)),
+        job={
+            "checked": stamp(datetime.now(UTC) - timedelta(hours=1)),
+            "found": job.listed,
+            "outcome": "nothing",
+        },
+    )
+    code, written = run_job(tmp_path, settings, previous)
+    assert code == 1 and written is None and job.log == []
+
+
+def test_failure_reason_is_an_annotation_and_a_safe_step_output(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    output = tmp_path / "outputs"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    assert published._fail("50% failed\r\nModel unavailable") == 1
+    escaped = "50%25 failed%0D%0AModel unavailable"
+    assert f"::error title=Model check failed::{escaped}" in capsys.readouterr().out
+    assert output.read_text() == f"failure_reason={escaped}\n"
+
+
+def test_full_chains_still_test_waiting_candidates_on_the_weekly_cadence(
+    job: Job, tmp_path: Path
+) -> None:
+    settings = make_settings()
+    job.listed = [FIRST, SECOND, NEW, OTHER]
+    previous = valid(
+        settings,
+        chain=[FIRST, SECOND, NEW],
+        tested=stamp(datetime.now(UTC) - timedelta(days=7)),
+        job={
+            "checked": stamp(datetime.now(UTC) - timedelta(days=7)),
+            "found": job.listed,
+            "outcome": "published",
+        },
+    )
+    code, written = run_job(tmp_path, settings, previous)
+    assert code == 0 and written["test"]["tested"] == [FIRST, SECOND, NEW, OTHER]
+    assert len(job.log) == 12
 
 
 def test_a_refused_key_fails_the_run_at_once(
