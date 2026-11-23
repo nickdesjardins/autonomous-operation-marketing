@@ -1,13 +1,13 @@
 {
   "version": 2,
   "fingerprint": "299f9cf430e747d9",
-  "tested": "2026-11-16T16:06:59Z",
+  "tested": "2026-11-23T16:32:25Z",
   "chain": [
     "nvidia/nemotron-3.5-super-vl:free",
     "particle-ai/particle-1:free"
   ],
   "test": {
-    "started": "2026-11-16T16:04:53Z",
+    "started": "2026-11-23T16:30:05Z",
     "found": [
       "inclusionai/ling-3.2-flash:free",
       "baidu/ernie-5.5-flash-preview:free",
@@ -19,12 +19,12 @@
     "tested": [
       "nvidia/nemotron-3.5-super-vl:free",
       "particle-ai/particle-1:free",
-      "inclusionai/ling-3.2-flash:free",
-      "baidu/ernie-5.5-flash-preview:free"
-    ],
-    "left_out": [
       "liquid/lfm-3-1.7b:free",
       "dots-studio/dots-3-note-preview:free"
+    ],
+    "left_out": [
+      "inclusionai/ling-3.2-flash:free",
+      "baidu/ernie-5.5-flash-preview:free"
     ],
     "gone": [],
     "cases": [
@@ -48,7 +48,7 @@
         "case": "synthesis",
         "outcome": "answered",
         "correct": true,
-        "seconds": 3.45,
+        "seconds": 21.8,
         "error_type": null
       },
       {
@@ -56,7 +56,7 @@
         "case": "audit-catches",
         "outcome": "answered",
         "correct": true,
-        "seconds": 10.37,
+        "seconds": 19.6,
         "error_type": null
       },
       {
@@ -64,63 +64,31 @@
         "case": "audit-passes",
         "outcome": "answered",
         "correct": true,
-        "seconds": 1.09,
+        "seconds": 13.23,
         "error_type": null
       },
       {
         "model": "particle-ai/particle-1:free",
         "case": "synthesis",
-        "outcome": "answered",
-        "correct": true,
-        "seconds": 21.66,
-        "error_type": null
-      },
-      {
-        "model": "particle-ai/particle-1:free",
-        "case": "audit-catches",
-        "outcome": "answered",
-        "correct": true,
-        "seconds": 11.6,
-        "error_type": null
-      },
-      {
-        "model": "particle-ai/particle-1:free",
-        "case": "audit-passes",
-        "outcome": "answered",
-        "correct": true,
-        "seconds": 2.81,
-        "error_type": null
-      },
-      {
-        "model": "inclusionai/ling-3.2-flash:free",
-        "case": "synthesis",
-        "outcome": "answered",
-        "correct": true,
-        "seconds": 28.4,
-        "error_type": null
-      },
-      {
-        "model": "inclusionai/ling-3.2-flash:free",
-        "case": "audit-catches",
         "outcome": "no_answer",
         "correct": null,
-        "seconds": 1.12,
+        "seconds": 0.38,
         "error_type": "ProviderError"
       },
       {
-        "model": "baidu/ernie-5.5-flash-preview:free",
+        "model": "liquid/lfm-3-1.7b:free",
         "case": "synthesis",
-        "outcome": "answered",
-        "correct": true,
-        "seconds": 12.25,
-        "error_type": null
-      },
-      {
-        "model": "baidu/ernie-5.5-flash-preview:free",
-        "case": "audit-catches",
         "outcome": "no_answer",
         "correct": null,
-        "seconds": 17.85,
+        "seconds": 20.26,
+        "error_type": "ProviderError"
+      },
+      {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "case": "synthesis",
+        "outcome": "no_answer",
+        "correct": null,
+        "seconds": 59.48,
         "error_type": "ProviderError"
       }
     ],
@@ -132,53 +100,55 @@
         "errors": {},
         "answered": 3,
         "correct": 3,
-        "median_seconds": 3.5,
-        "slowest_seconds": 10.4,
+        "median_seconds": 19.6,
+        "slowest_seconds": 21.8,
         "verdict": "passed",
         "why": "all_right",
         "placing": "kept"
       },
       {
         "model": "particle-ai/particle-1:free",
-        "calls": 3,
-        "no_answer": 0,
-        "errors": {},
-        "answered": 3,
-        "correct": 3,
-        "median_seconds": 11.6,
-        "slowest_seconds": 21.7,
-        "verdict": "passed",
-        "why": "all_right",
+        "calls": 1,
+        "no_answer": 1,
+        "errors": {
+          "ProviderError": 1
+        },
+        "answered": 0,
+        "correct": 0,
+        "median_seconds": null,
+        "slowest_seconds": null,
+        "verdict": "not_judged",
+        "why": "no_answers",
         "placing": "kept"
       },
       {
-        "model": "inclusionai/ling-3.2-flash:free",
-        "calls": 2,
+        "model": "liquid/lfm-3-1.7b:free",
+        "calls": 1,
         "no_answer": 1,
         "errors": {
           "ProviderError": 1
         },
-        "answered": 1,
-        "correct": 1,
-        "median_seconds": 28.4,
-        "slowest_seconds": 28.4,
+        "answered": 0,
+        "correct": 0,
+        "median_seconds": null,
+        "slowest_seconds": null,
         "verdict": "not_judged",
-        "why": "unanswered",
+        "why": "no_answers",
         "placing": null
       },
       {
-        "model": "baidu/ernie-5.5-flash-preview:free",
-        "calls": 2,
+        "model": "dots-studio/dots-3-note-preview:free",
+        "calls": 1,
         "no_answer": 1,
         "errors": {
           "ProviderError": 1
         },
-        "answered": 1,
-        "correct": 1,
-        "median_seconds": 12.2,
-        "slowest_seconds": 12.2,
+        "answered": 0,
+        "correct": 0,
+        "median_seconds": null,
+        "slowest_seconds": null,
         "verdict": "not_judged",
-        "why": "unanswered",
+        "why": "no_answers",
         "placing": null
       }
     ],
@@ -187,10 +157,10 @@
       "particle-ai/particle-1:free"
     ],
     "outcome": "unchanged",
-    "requests": 10
+    "requests": 6
   },
   "job": {
-    "checked": "2026-11-16T16:06:59Z",
+    "checked": "2026-11-23T16:32:25Z",
     "found": [
       "baidu/ernie-5.5-flash-preview:free",
       "dots-studio/dots-3-note-preview:free",
@@ -203,7 +173,8 @@
   },
   "by": {
     "repository": "nickdesjardins/autonomous-operation-marketing",
-    "commit": "9a1564b66dcbf53b0c2a0327369f71db34d96c06",
-    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/43903413334"
-  }
+    "commit": "d7b6d5ae31746f2fd0126fe3150b741c52606bee",
+    "run": "https://github.com/nickdesjardins/autonomous-operation-marketing/actions/runs/45217123900"
+  },
+  "quality_failures": []
 }
